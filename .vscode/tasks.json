@@ -7,6 +7,11 @@
             "label": "win_build",
             "type": "shell",
             "command": "\"C:/Program Files (x86)/Google/Chrome/Application/chrome\" -f C:/Users/Dave/Desktop/webgl_game/index.html",
+        },
+        {
+            "label": "win_run",
+            "type": "shell",
+            "command": "\"C:/Program Files (x86)/Google/Chrome/Application/chrome\" -f C:/Users/Dave/Desktop/webgl_game/index.html",
         }
     ]
 }

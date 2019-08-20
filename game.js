@@ -29,12 +29,13 @@ function windowResize(){
     codeDiv.style.width = window.innerWidth * 0.96 * 0.25;
     codeDiv.style.height = window.innerHeight * 0.96 * 0.75;
     canvas.style.left = window.innerWidth * 0.25;
-    canvas.style.height = window.innerHeight * 0.96 * 0.75;
+    canvas.width = window.innerWidth * 0.96 * 0.75;
+    canvas.height = window.innerHeight * 0.96 * 0.75;
 }
 
 function initCanvas(){
     gl = canvas.getContext('webgl2');
     gl.clearColor(0, 1, 1, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    initTexturedMeshRenderer();
     
 }
