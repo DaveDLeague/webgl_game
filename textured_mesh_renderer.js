@@ -3,30 +3,36 @@ in vec3 position;\n\
 in vec3 normal;\n\
 in vec2 uvCoordinate;\n\
 uniform mat4 cameraViewMatrix;\n\
+uniform mat4 modelMatrix;\n\
 out vec3 norm;\n\
 out vec2 uv;\n\
 void main(){\
     norm = normal;\
     uv = uvCoordinate;\
-    gl_Position = cameraViewMatrix * vec4(position, 1.0);\
+    gl_Position = cameraViewMatrix * modelMatrix * vec4(position, 1.0);\
 }\
 ";
 
 const tmFragShader =  "#version 300 es\n\
 precision mediump float;\n\
-in vec3 norm;\
+in vec2 uv;\n\
+in vec3 norm;\n\
+uniform sampler2D tex;\n\
 out vec4 finalColor;\n\
 void main(){\
-    finalColor = vec4(1, 0, 0, 1);\
+    vec4 texCol = texture(tex, uv);\
+    finalColor = texCol;\
 }\
 ";
 
 class TexturedMesh{
     constructor(){
         this.position = new Vector3();
+        this.scale = new Vector3(1, 1, 1);
         this.orientation = new Quaternion();
         this.totalIndices = 0;
         this.indexOffset = 0;
+        this.textureID = 0;
     }
 }
 
@@ -45,6 +51,8 @@ var tmModelViewMatrixID;
 var tmIndexBufferSize;
 var tmVertexBufferSize;
 
+var tmDefaultTexture = 0;
+
 function initTexturedMeshRenderer(){
     tmShader = compileGLShader(gl, tmVertShader, tmFragShader);
     gl.useProgram(tmShader);
@@ -54,6 +62,7 @@ function initTexturedMeshRenderer(){
     tmUvID = gl.getAttribLocation(tmShader, "uvCoordinate");
 
     tmCameraViewMatrixID = gl.getUniformLocation(tmShader, "cameraViewMatrix");
+    tmModelViewMatrixID = gl.getUniformLocation(tmShader, "modelMatrix");
 
     tmVao = gl.createVertexArray();
     gl.bindVertexArray(tmVao);
@@ -75,6 +84,17 @@ function initTexturedMeshRenderer(){
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tmIbo);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 0, gl.STATIC_DRAW);
 
+    let pix = [
+        100, 100, 100, 255, 200, 200, 200, 255,
+        200, 200, 200, 255, 100, 100, 100, 255
+    ];
+    tmDefaultTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tmDefaultTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(pix));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 }
 
 function prepareTexturedMeshRenderer(){
@@ -83,11 +103,14 @@ function prepareTexturedMeshRenderer(){
 }
 
 function renderTexturedMesh(mesh, camera){
+    gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
+    let modelMat = Matrix4.buildModelMatrix4(mesh.position, mesh.scale, mesh.orientation);
+    gl.uniformMatrix4fv(tmModelViewMatrixID, gl.FALSE, modelMat.m);
     gl.uniformMatrix4fv(tmCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
     gl.drawElements(gl.TRIANGLES, mesh.totalIndices, gl.UNSIGNED_INT, mesh.indexOffset);
 }
 
-function createTexturedMesh(vertices, indices){
+function createTexturedMesh(vertices, indices, textureId = tmDefaultTexture){
     gl.bindVertexArray(tmVao);
     verticesSize = vertices.length * 4;
     indicesSize = indices.length * 4;
@@ -125,6 +148,7 @@ function createTexturedMesh(vertices, indices){
     let tm = new TexturedMesh();
     tm.totalIndices = indices.length;
     tm.indexOffset = tmIndexBufferSize;
+    tm.textureID = textureId;
     tmVertexBufferSize += verticesSize;
     tmIndexBufferSize += indicesSize;
     

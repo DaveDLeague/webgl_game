@@ -615,6 +615,18 @@ function compileGLShader(gl, vsCode, fsCode){
     return shaderProgram;
 }
 
+function generateGLTexture2D(pixelData, width, height){
+    let tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(pixelData));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    return tex;
+}
+
 function getSurfaceNormal(v1, v2, v3){
     let va = Vector3.sub(v2, v1);
     let vb = Vector3.sub(v3, v1);

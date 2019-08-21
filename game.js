@@ -40,10 +40,18 @@ window.onload = function(){
         0, 1, 2,
     ];
 
+    let pix = [
+        100, 100, 200, 255, 200, 200, 100, 255, 100, 100, 200, 255,
+        200, 200, 100, 255, 100, 100, 200, 255, 200, 200, 100, 255,
+        100, 100, 200, 255, 200, 200, 100, 255, 100, 100, 200, 255,
+        200, 200, 100, 255, 100, 100, 200, 255, 200, 200, 100, 255,
+    ];
+
     gl.clear(gl.COLOR_BUFFER_BIT);
     initTexturedMeshRenderer();
-    
+
     let msh = createTexturedMesh(verts, inds);
+    msh.textureID = generateGLTexture2D(pix, 3, 4);
     prepareTexturedMeshRenderer();
     renderTexturedMesh(msh, gameCamera);
 }
