@@ -1,6 +1,4 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
@@ -12,6 +10,16 @@
             "label": "win_run",
             "type": "shell",
             "command": "\"C:/Program Files (x86)/Google/Chrome/Application/chrome\" -f C:/Users/Dave/Desktop/webgl_game/index.html",
-        }
+        },
+        {
+            "label": "osx_run",
+            "type": "shell",
+            "command": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" -f /Users/Dave/workspace/webgl_game/index.html",
+        },
+        {
+            "label": "osx_build",
+            "type": "shell",
+            "command": "\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" -f /Users/Dave/workspace/webgl_game/index.html",
+        },
     ]
 }
