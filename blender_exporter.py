@@ -1,43 +1,104 @@
-bl_info = {
-    "name": "Cursor Array",
-    "category": "Object",
-}
-
 import bpy
+from os import system, name
+
+vertexList = []
+indexList = []
+obj = bpy.context.active_object
+polys = obj.data.polygons
+vertices = obj.data.vertices
+uvs = obj.data.uv_layers[0].data
+
+def clear(): 
+    if name == 'nt': 
+        system('cls') 
+    else: 
+        system('clear') 
+
+def addVertex(list, vert):
+    for i, tv in enumerate(list):
+        if vert == tv:
+            return i;
+    list.append(vert)
+    return len(list) - 1
+
+for p in polys:
+    indCt = len(indexList)
+    for i, v in enumerate(p.vertices):
+        pos = []
+        norm = []
+        uv = []
+        
+        pos.append(round(vertices[v].co.x, 4))
+        pos.append(round(vertices[v].co.y, 4))
+        pos.append(round(vertices[v].co.z, 4))
+        
+        norm.append(round(vertices[v].normal.x, 4))
+        norm.append(round(vertices[v].normal.y, 4))
+        norm.append(round(vertices[v].normal.z, 4))
+        
+        uv.append(round(uvs[v].uv.x, 4))
+        uv.append(round(uvs[v].uv.y, 4))
+        
+        vertex = [pos, norm, uv]
+        
+        if i < 3:
+            indexList.append(addVertex(vertexList, vertex))
+        else:
+            indexList.append(indexList[len(indexList) - 1])
+            indexList.append(addVertex(vertexList, vertex))
+            indexList.append(indexList[indCt])
+            
+clear()
+
+nvList = []
+for v in vertexList:
+    for p in v[0]:
+        nvList.append(p)
+    for n in v[1]:
+        nvList.append(n)
+    for u in v[2]:
+        nvList.append(u)
+            
+print(nvList)
+print(indexList)
 
 
-class ObjectCursorArray(bpy.types.Operator):
-    """Object Cursor Array"""
-    bl_idname = "object.cursor_array"
-    bl_label = "Cursor Array"
+'''bl_info = {
+    "name": "Mesh Exporter",
+    "category": "Object",
+}'''
+
+'''class MeshExporter(bpy.types.Operator):
+    bl_idname = "object.mesh_exporter"
+    bl_label = "Mesh Exporter"
     bl_options = {'REGISTER', 'UNDO'}
-
+    
     total: bpy.props.IntProperty(name="Steps", default=2, min=1, max=100)
-
+    
     def execute(self, context):
-        scene = context.scene
-        cursor = scene.cursor.location
-        obj = context.active_object
-
-        for i in range(self.total):
-            obj_new = obj.copy()
-            scene.collection.objects.link(obj_new)
-
-            factor = i / self.total
-            obj_new.location = (obj.location * factor) + (cursor * (1.0 - factor))
-
+        obj = bpy.context.active_object
+        polys = obj.data.polygons
+        vertices = obj.data.vertices
+        uvs = obj.data.uv_layers[0].data
+        
+        for p in polys:
+            for v in p.vertices:
+                pos = vertices[v].co
+                norm = vertices[v].normal
+            
+    
         return {'FINISHED'}
 
 
 def menu_func(self, context):
-    self.layout.operator(ObjectCursorArray.bl_idname)
+    self.layout.operator(MeshExporter.bl_idname)
 
 # store keymaps here to access after registration
 addon_keymaps = []
 
 
 def register():
-    bpy.utils.register_class(ObjectCursorArray)
+    bpy.utils.register_class(MeshExporter)
     bpy.types.VIEW3D_MT_object.append(menu_func)
 
     # handle the keymap
@@ -47,7 +108,7 @@ def register():
     kc = wm.keyconfigs.addon
     if kc:
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
-        kmi = km.keymap_items.new(ObjectCursorArray.bl_idname, 'T', 'PRESS', ctrl=True, shift=True)
+        kmi = km.keymap_items.new(MeshExporter.bl_idname, 'T', 'PRESS', ctrl=True, shift=True)
         kmi.properties.total = 4
         addon_keymaps.append((km, kmi))
 
@@ -59,9 +120,9 @@ def unregister():
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
 
-    bpy.utils.unregister_class(ObjectCursorArray)
+    bpy.utils.unregister_class(MeshExporter)
     bpy.types.VIEW3D_MT_object.remove(menu_func)
 
 
 if __name__ == "__main__":
-    register()
+    register()'''

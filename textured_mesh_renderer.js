@@ -97,17 +97,18 @@ function initTexturedMeshRenderer(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 }
 
-function prepareTexturedMeshRenderer(){
+function renderTexturedMeshes(meshes, camera){
     gl.useProgram(tmShader);
     gl.bindVertexArray(tmVao);
-}
-
-function renderTexturedMesh(mesh, camera){
-    gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
-    let modelMat = Matrix4.buildModelMatrix4(mesh.position, mesh.scale, mesh.orientation);
-    gl.uniformMatrix4fv(tmModelViewMatrixID, gl.FALSE, modelMat.m);
-    gl.uniformMatrix4fv(tmCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
-    gl.drawElements(gl.TRIANGLES, mesh.totalIndices, gl.UNSIGNED_INT, mesh.indexOffset);
+    for(let i = 0; i < meshes.length; i++){
+        let mesh = meshes[i];
+        gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
+        let modelMat = Matrix4.buildModelMatrix4(mesh.position, mesh.scale, mesh.orientation);
+        gl.uniformMatrix4fv(tmModelViewMatrixID, gl.FALSE, modelMat.m);
+        gl.uniformMatrix4fv(tmCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
+        gl.drawElements(gl.TRIANGLES, mesh.totalIndices, gl.UNSIGNED_INT, mesh.indexOffset);
+    }
+    
 }
 
 function createTexturedMesh(vertices, indices, textureId = tmDefaultTexture){

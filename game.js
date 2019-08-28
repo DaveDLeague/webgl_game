@@ -6,7 +6,7 @@ var codeDiv;
 
 var gameCamera;
 
-var msh;
+var staticMeshes = [];
 
 window.onload = function(){
     buttonDiv = document.getElementById('buttonDivID');
@@ -27,23 +27,28 @@ window.onload = function(){
     windowResize();
 
     gl = canvas.getContext('webgl2');
-    gl.clearColor(0, 1, 1, 1);    
+    gl.clearColor(0, 1, 1, 1);  
+    gl.enable(gl.DEPTH_TEST); 
+    gl.enable(gl.CULL_FACE); 
 
     gameCamera = new Camera();
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
     gameCamera.position.z = 5;
     gameCamera.updateView();
 
-    let verts = [
-        -0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0,
-        -0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0,
-         0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0,
-         0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 1.0,
-    ];
+    // let verts = [
+    //     -0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0,
+    //     -0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+    //      0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0,
+    //      0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 1.0,
+    // ];
 
-    let inds = [
-        0, 1, 2, 2, 3, 0
-    ];
+    // let inds = [
+    //     0, 1, 2, 2, 3, 0
+    // ];
+
+    let verts = [1.0, 1.0, 1.0, 0.5773, 0.5773, 0.5774, 0.3333, 0.6667, -1.0, 1.0, 1.0, -0.5773, 0.5773, 0.5774, 0.3333, 0.6667, -1.0, -1.0, 1.0, -0.5773, -0.5773, 0.5774, 0.6667, 0.3333, 1.0, -1.0, 1.0, 0.5773, -0.5773, 0.5774, 0.0, 1.0, 1.0, -1.0, -1.0, 0.5773, -0.5773, -0.5774, 0.0, 0.6667, -1.0, -1.0, -1.0, -0.5773, -0.5773, -0.5774, 0.6667, 0.6667, -1.0, 1.0, -1.0, -0.5773, 0.5773, -0.5774, 0.3333, 0.3333, 1.0, 1.0, -1.0, 0.5773, 0.5773, -0.5774, 0.3333, 1.0];
+    let inds = [0, 1, 2, 2, 3, 0, 4, 3, 2, 2, 5, 4, 5, 2, 1, 1, 6, 5, 6, 7, 4, 4, 5, 6, 7, 0, 3, 3, 4, 7, 6, 1, 0, 0, 7, 6];
 
     let pix = [
         100, 100, 200, 255, 200, 200, 100, 255, 100, 100, 200, 255,
@@ -55,20 +60,23 @@ window.onload = function(){
     
     initTexturedMeshRenderer();
 
-    msh = createTexturedMesh(verts, inds);
+    let msh = createTexturedMesh(verts, inds);
     msh.textureID = generateGLTexture2D(pix, 3, 4);
-    
-    
+    staticMeshes.push(msh);
+
+    msh = createTexturedMesh(verts, inds);
+    msh.position.z = -3;
+    staticMeshes.push(msh);
     setInterval(updateScreen, 0);
 }
 
 function updateScreen(){
     gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
 
-    gameCamera.updateView(0.001);
-    prepareTexturedMeshRenderer();
+    gameCamera.updateView(0.01);
     
-    renderTexturedMesh(msh, gameCamera);
+    renderTexturedMeshes(staticMeshes, gameCamera);
 }
 
 function windowResize(){
