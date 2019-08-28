@@ -12,7 +12,8 @@ def clear():
     if name == 'nt': 
         system('cls') 
     else: 
-        system('clear') 
+        system('clear')
+clear()
 
 def addVertex(list, vert):
     for i, tv in enumerate(list):
@@ -36,8 +37,11 @@ for p in polys:
         norm.append(round(vertices[v].normal.y, 4))
         norm.append(round(vertices[v].normal.z, 4))
         
-        uv.append(round(uvs[v].uv.x, 4))
-        uv.append(round(uvs[v].uv.y, 4))
+        uv.append(round(uvs[p.loop_indices[i]].uv.x, 4))
+        uv.append(round(uvs[p.loop_indices[i]].uv.y, 4))
+        
+        print("p:" + str(pos))
+        print("u:" + str(uv))
         
         vertex = [pos, norm, uv]
         
@@ -47,8 +51,6 @@ for p in polys:
             indexList.append(indexList[len(indexList) - 1])
             indexList.append(addVertex(vertexList, vertex))
             indexList.append(indexList[indCt])
-            
-clear()
 
 nvList = []
 for v in vertexList:
@@ -58,9 +60,21 @@ for v in vertexList:
         nvList.append(n)
     for u in v[2]:
         nvList.append(u)
+
+texturePixels = []
+for p in bpy.data.images['monkey.png'].pixels:
+    texturePixels.append(int(p * 255))
+
+
+fileText = "var monkeyMeshData = ["
+fileText += str(nvList) + ","
+fileText += str(indexList) + "];\n"
+
+fileText += "var monkeyTextureData = " + str(texturePixels) + ";"
             
-print(nvList)
-print(indexList)
+file = open('C:/Users/Dave/Desktop/monkeyData.js', 'w')
+file.write(fileText);
+file.close()
 
 
 '''bl_info = {

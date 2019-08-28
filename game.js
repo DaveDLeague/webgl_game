@@ -29,7 +29,7 @@ window.onload = function(){
     gl = canvas.getContext('webgl2');
     gl.clearColor(0, 1, 1, 1);  
     gl.enable(gl.DEPTH_TEST); 
-    gl.enable(gl.CULL_FACE); 
+    //gl.enable(gl.CULL_FACE); 
 
     gameCamera = new Camera();
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
@@ -50,18 +50,13 @@ window.onload = function(){
     let verts = monkeyMeshData[0];
     let inds = monkeyMeshData[1];
 
-    let pix = [
-        100, 100, 200, 255, 200, 200, 100, 255, 100, 100, 200, 255,
-        200, 200, 100, 255, 100, 100, 200, 255, 200, 200, 100, 255,
-        100, 100, 200, 255, 200, 200, 100, 255, 100, 100, 200, 255,
-        200, 200, 100, 255, 100, 100, 200, 255, 200, 200, 100, 255,
-    ];
+    let pix = monkeyTextureData;
 
     
     initTexturedMeshRenderer();
 
     let msh = createTexturedMesh(verts, inds);
-    msh.textureID = generateGLTexture2D(pix, 3, 4);
+    msh.textureID = generateGLTexture2D(pix, 1024, 1024);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(verts, inds);
