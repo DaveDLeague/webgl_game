@@ -5,6 +5,7 @@ var buttonDiv;
 var codeDiv;
 
 var gameCamera;
+var gameLight = new Vector3(5, 5, 5);
 
 var staticMeshes = [];
 
@@ -29,34 +30,23 @@ window.onload = function(){
     gl = canvas.getContext('webgl2');
     gl.clearColor(0, 1, 1, 1);  
     gl.enable(gl.DEPTH_TEST); 
-    //gl.enable(gl.CULL_FACE); 
+    gl.enable(gl.CULL_FACE); 
 
     gameCamera = new Camera();
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
     gameCamera.position.z = 5;
     gameCamera.updateView();
 
-    // let verts = [
-    //     -0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0,
-    //     -0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0,
-    //      0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0,
-    //      0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 1.0,
-    // ];
-
-    // let inds = [
-    //     0, 1, 2, 2, 3, 0
-    // ];
-
     let verts = monkeyMeshData[0];
     let inds = monkeyMeshData[1];
 
     let pix = monkeyTextureData;
-
     
     initTexturedMeshRenderer();
 
     let msh = createTexturedMesh(verts, inds);
     msh.textureID = generateGLTexture2D(pix, 1024, 1024);
+    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(verts, inds);
@@ -71,7 +61,7 @@ function updateScreen(){
 
     gameCamera.updateView(0.01);
     
-    renderTexturedMeshes(staticMeshes, gameCamera);
+    renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
 }
 
 function windowResize(){

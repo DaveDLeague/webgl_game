@@ -4,24 +4,32 @@ in vec3 normal;\n\
 in vec2 uvCoordinate;\n\
 uniform mat4 cameraViewMatrix;\n\
 uniform mat4 modelMatrix;\n\
+out vec3 fragPos;\n\
 out vec3 norm;\n\
 out vec2 uv;\n\
 void main(){\
-    norm = normal;\
+    fragPos = vec3(modelMatrix * vec4(position, 1.0));\
+    norm = vec3(modelMatrix * vec4(normal, 0.0));\
     uv = uvCoordinate;\
-    gl_Position = cameraViewMatrix * modelMatrix * vec4(position, 1.0);\
+    gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
 }\
 ";
 
-const tmFragShader =  "#version 300 es\n\
+const tmFragShader = "#version 300 es\n\
 precision mediump float;\n\
 in vec2 uv;\n\
 in vec3 norm;\n\
+in vec3 fragPos;\n\
+uniform vec3 lightPosition;\n\
 uniform sampler2D tex;\n\
 out vec4 finalColor;\n\
 void main(){\
+    float ambient = 0.2;\
+    vec3 lightDir = normalize(lightPosition - fragPos);\
+    float diff = max(dot(norm, lightDir), ambient);\
     vec4 texCol = texture(tex, uv);\
-    finalColor = texCol;\
+    vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
+    finalColor = finCol;\
 }\
 ";
 
@@ -47,6 +55,7 @@ var tmUvID;
 
 var tmCameraViewMatrixID;
 var tmModelViewMatrixID;
+var tmLightPositionID;
 
 var tmIndexBufferSize;
 var tmVertexBufferSize;
@@ -63,6 +72,7 @@ function initTexturedMeshRenderer(){
 
     tmCameraViewMatrixID = gl.getUniformLocation(tmShader, "cameraViewMatrix");
     tmModelViewMatrixID = gl.getUniformLocation(tmShader, "modelMatrix");
+    tmLightPositionID = gl.getUniformLocation(tmShader, "lightPosition");
 
     tmVao = gl.createVertexArray();
     gl.bindVertexArray(tmVao);
@@ -88,6 +98,7 @@ function initTexturedMeshRenderer(){
         100, 100, 100, 255, 200, 200, 200, 255,
         200, 200, 200, 255, 100, 100, 100, 255
     ];
+
     tmDefaultTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tmDefaultTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(pix));
@@ -97,9 +108,10 @@ function initTexturedMeshRenderer(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 }
 
-function renderTexturedMeshes(meshes, camera){
+function renderTexturedMeshes(meshes, camera, lightPosition){
     gl.useProgram(tmShader);
     gl.bindVertexArray(tmVao);
+    gl.uniform3fv(tmLightPositionID, lightPosition.toArray());
     for(let i = 0; i < meshes.length; i++){
         let mesh = meshes[i];
         gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
