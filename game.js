@@ -6,12 +6,16 @@ var codeDiv;
 
 var gameCamera;
 
+var msh;
+
 window.onload = function(){
     buttonDiv = document.getElementById('buttonDivID');
     codeDiv = document.getElementById('codeDivID');
     canvas = document.getElementById('canvasID');
 
     window.addEventListener('resize', windowResize);
+    window.addEventListener("keydown", keyDown);
+    window.addEventListener("keyup", keyUp);
 
     buttonDiv.style.position = 'absolute';
     buttonDiv.style.border = 'solid';
@@ -34,10 +38,11 @@ window.onload = function(){
         -0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0,
         -0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0,
          0.5,  0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0,
+         0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 1.0, 1.0,
     ];
 
     let inds = [
-        0, 1, 2,
+        0, 1, 2, 2, 3, 0
     ];
 
     let pix = [
@@ -47,12 +52,22 @@ window.onload = function(){
         200, 200, 100, 255, 100, 100, 200, 255, 200, 200, 100, 255,
     ];
 
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    
     initTexturedMeshRenderer();
 
-    let msh = createTexturedMesh(verts, inds);
+    msh = createTexturedMesh(verts, inds);
     msh.textureID = generateGLTexture2D(pix, 3, 4);
+    
+    
+    setInterval(updateScreen, 0);
+}
+
+function updateScreen(){
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gameCamera.updateView(0.001);
     prepareTexturedMeshRenderer();
+    
     renderTexturedMesh(msh, gameCamera);
 }
 
@@ -65,4 +80,110 @@ function windowResize(){
     canvas.style.left = window.innerWidth * 0.25;
     canvas.width = window.innerWidth * 0.96 * 0.75;
     canvas.height = window.innerHeight * 0.96 * 0.75;
+}
+
+function keyUp(event){ 
+    switch(event.keyCode){
+        case KEY_W:{
+            gameCamera.moveForward = false;
+            break;
+        }
+        case KEY_A:{
+            gameCamera.moveLeft = false;
+            break;
+        }
+        case KEY_S:{
+            gameCamera.moveBack = false;
+            break;
+        }
+        case KEY_D:{
+            gameCamera.moveRight = false;
+            break;
+        }
+        case KEY_R:{
+            gameCamera.moveUp = false;
+            break;
+        }
+        case KEY_F:{
+            gameCamera.moveDown = false;
+            break;
+        }
+        case KEY_UP:{
+            gameCamera.pitchUp = false;
+            break;
+        }
+        case KEY_DOWN:{
+            gameCamera.pitchDown = false;
+            break;
+        }
+        case KEY_LEFT:{
+            gameCamera.yawLeft = false;
+            break;
+        }
+        case KEY_RIGHT:{
+            gameCamera.yawRight = false;
+            break;
+        }
+        case KEY_Q:{
+            gameCamera.rollLeft = false;
+            break;
+        }
+        case KEY_E:{
+            gameCamera.rollRight = false;
+            break;
+        }
+    }
+}
+
+function keyDown(event){
+    switch(event.keyCode){
+        case KEY_W:{
+            gameCamera.moveForward = true;
+            break;
+        }
+        case KEY_A:{
+            gameCamera.moveLeft = true;
+            break;
+        }
+        case KEY_S:{
+            gameCamera.moveBack = true;
+            break;
+        }
+        case KEY_D:{
+            gameCamera.moveRight = true;
+            break;
+        }
+        case KEY_R:{
+            gameCamera.moveUp = true;
+            break;
+        }
+        case KEY_F:{
+            gameCamera.moveDown = true;
+            break;
+        }
+        case KEY_UP:{
+            gameCamera.pitchUp = true;
+            break;
+        }
+        case KEY_DOWN:{
+            gameCamera.pitchDown = true;
+            break;
+        }
+        case KEY_LEFT:{
+            gameCamera.yawLeft = true;
+            break;
+        }
+        case KEY_RIGHT:{
+            gameCamera.yawRight = true;
+            break;
+        }
+        case KEY_Q:{
+            gameCamera.rollLeft = true;
+            break;
+        }
+        case KEY_E:{
+            gameCamera.rollRight = true;
+            break;
+        }
+    }
 }
