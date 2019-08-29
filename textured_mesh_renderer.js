@@ -12,8 +12,7 @@ void main(){\
     norm = vec3(modelMatrix * vec4(normal, 0.0));\
     uv = uvCoordinate;\
     gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
-}\
-";
+}";
 
 const tmFragShader = "#version 300 es\n\
 precision mediump float;\n\
@@ -30,8 +29,7 @@ void main(){\
     vec4 texCol = texture(tex, uv);\
     vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
     finalColor = finCol;\
-}\
-";
+}";
 
 class TexturedMesh{
     constructor(){

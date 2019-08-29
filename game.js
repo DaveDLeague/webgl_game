@@ -30,7 +30,7 @@ window.onload = function(){
     gl = canvas.getContext('webgl2');
     gl.clearColor(0, 1, 1, 1);  
     gl.enable(gl.DEPTH_TEST); 
-    gl.enable(gl.CULL_FACE); 
+    //gl.enable(gl.CULL_FACE); 
 
     gameCamera = new Camera();
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
@@ -42,7 +42,18 @@ window.onload = function(){
 
     let pix = monkeyTextureData;
     
+    let sbPix = [255, 200, 200, 255,  200, 200, 255, 255,
+                 200, 200, 255, 255,  255, 200, 200, 255];
+
+    initSkyboxRenderer();
     initTexturedMeshRenderer();
+
+    loadSkyboxFaceImage(sbPix, 2, 2, "-x");
+    loadSkyboxFaceImage(sbPix, 2, 2, "+x");
+    loadSkyboxFaceImage(sbPix, 2, 2, "-y");
+    loadSkyboxFaceImage(sbPix, 2, 2, "+y");
+    loadSkyboxFaceImage(sbPix, 2, 2, "-z");
+    loadSkyboxFaceImage(sbPix, 2, 2, "+z");
 
     let msh = createTexturedMesh(verts, inds);
     msh.textureID = generateGLTexture2D(pix, 1024, 1024);
@@ -62,6 +73,7 @@ function updateScreen(){
     gameCamera.updateView(0.01);
     
     renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
+    renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
 }
 
 function windowResize(){
