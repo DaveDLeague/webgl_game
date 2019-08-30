@@ -1,36 +1,3 @@
-const tmVertShader = "#version 300 es\n\
-in vec3 position;\n\
-in vec3 normal;\n\
-in vec2 uvCoordinate;\n\
-uniform mat4 cameraViewMatrix;\n\
-uniform mat4 modelMatrix;\n\
-out vec3 fragPos;\n\
-out vec3 norm;\n\
-out vec2 uv;\n\
-void main(){\
-    fragPos = vec3(modelMatrix * vec4(position, 1.0));\
-    norm = vec3(modelMatrix * vec4(normal, 0.0));\
-    uv = uvCoordinate;\
-    gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
-}";
-
-const tmFragShader = "#version 300 es\n\
-precision mediump float;\n\
-in vec2 uv;\n\
-in vec3 norm;\n\
-in vec3 fragPos;\n\
-uniform vec3 lightPosition;\n\
-uniform sampler2D tex;\n\
-out vec4 finalColor;\n\
-void main(){\
-    float ambient = 0.2;\
-    vec3 lightDir = normalize(lightPosition - fragPos);\
-    float diff = max(dot(norm, lightDir), ambient);\
-    vec4 texCol = texture(tex, uv);\
-    vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
-    finalColor = finCol;\
-}";
-
 class TexturedMesh{
     constructor(){
         this.position = new Vector3();
@@ -61,6 +28,39 @@ var tmVertexBufferSize;
 var tmDefaultTexture = 0;
 
 function initTexturedMeshRenderer(){
+    let tmVertShader = "#version 300 es\n\
+in vec3 position;\n\
+in vec3 normal;\n\
+in vec2 uvCoordinate;\n\
+uniform mat4 cameraViewMatrix;\n\
+uniform mat4 modelMatrix;\n\
+out vec3 fragPos;\n\
+out vec3 norm;\n\
+out vec2 uv;\n\
+void main(){\
+    fragPos = vec3(modelMatrix * vec4(position, 1.0));\
+    norm = vec3(modelMatrix * vec4(normal, 0.0));\
+    uv = uvCoordinate;\
+    gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
+}";
+
+let tmFragShader = "#version 300 es\n\
+precision mediump float;\n\
+in vec2 uv;\n\
+in vec3 norm;\n\
+in vec3 fragPos;\n\
+uniform vec3 lightPosition;\n\
+uniform sampler2D tex;\n\
+out vec4 finalColor;\n\
+void main(){\
+    float ambient = 0.2;\
+    vec3 lightDir = normalize(lightPosition - fragPos);\
+    float diff = max(dot(norm, lightDir), ambient);\
+    vec4 texCol = texture(tex, uv);\
+    vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
+    finalColor = finCol;\
+}";
+
     tmShader = compileGLShader(gl, tmVertShader, tmFragShader);
     gl.useProgram(tmShader);
 

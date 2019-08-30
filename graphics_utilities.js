@@ -615,16 +615,30 @@ function compileGLShader(gl, vsCode, fsCode){
     return shaderProgram;
 }
 
-function generateGLTexture2D(pixelData, width, height){
+function generateGLTexture2D(pixelData, width, height, filterType = "nearest"){
     let tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(pixelData));
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
+    setGLTextureFilterType(tex, filterType);
     return tex;
+}
+
+function setGLTextureFilterType(texture, type){
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    switch(type){
+        case "linear":{
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            break;
+        }
+        case "nearest":{
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            break;
+        }
+    }
 }
 
 function getSurfaceNormal(v1, v2, v3){

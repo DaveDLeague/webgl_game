@@ -5,7 +5,7 @@ var buttonDiv;
 var codeDiv;
 
 var gameCamera;
-var gameLight = new Vector3(5, 5, 5);
+var gameLight = new Vector3(50, 50, 50);
 
 var staticMeshes = [];
 
@@ -30,9 +30,10 @@ window.onload = function(){
     gl = canvas.getContext('webgl2');
     gl.clearColor(0, 1, 1, 1);  
     gl.enable(gl.DEPTH_TEST); 
-    //gl.enable(gl.CULL_FACE); 
+    gl.enable(gl.CULL_FACE); 
 
     gameCamera = new Camera();
+
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
     gameCamera.position.z = 5;
     gameCamera.updateView();
@@ -48,21 +49,18 @@ window.onload = function(){
     initSkyboxRenderer();
     initTexturedMeshRenderer();
 
-    loadSkyboxFaceImage(sbPix, 2, 2, "-x");
-    loadSkyboxFaceImage(sbPix, 2, 2, "+x");
-    loadSkyboxFaceImage(sbPix, 2, 2, "-y");
-    loadSkyboxFaceImage(sbPix, 2, 2, "+y");
-    loadSkyboxFaceImage(sbPix, 2, 2, "-z");
-    loadSkyboxFaceImage(sbPix, 2, 2, "+z");
+    loadSkyboxFaceImage(skyboxImageData[0], 256, 256, "-x");
+    loadSkyboxFaceImage(skyboxImageData[1], 256, 256, "+z");
+    loadSkyboxFaceImage(skyboxImageData[2], 256, 256, "+x");
+    loadSkyboxFaceImage(skyboxImageData[3], 256, 256, "-z");
+    loadSkyboxFaceImage(skyboxImageData[4], 256, 256, "-y");
+    loadSkyboxFaceImage(skyboxImageData[5], 256, 256, "+y");
 
     let msh = createTexturedMesh(verts, inds);
-    msh.textureID = generateGLTexture2D(pix, 1024, 1024);
+    msh.textureID = generateGLTexture2D(pix, 1024, 1024, "linear");
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
     staticMeshes.push(msh);
 
-    msh = createTexturedMesh(verts, inds);
-    msh.position.z = -3;
-    staticMeshes.push(msh);
     setInterval(updateScreen, 0);
 }
 

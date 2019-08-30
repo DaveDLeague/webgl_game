@@ -1,66 +1,3 @@
-const sbVertexShader = "#version 300 es\n\
-in vec3 position;\n\
-out vec3 uvCoords;\n\
-uniform mat4 projectionViewMatrix;\n\
-void  main(){\
-mat4 pvm = projectionViewMatrix;\
-uvCoords = position;\
-vec4 pos = projectionViewMatrix * vec4(position, 1.0);\
-gl_Position = pos.xyww;\
-}";
-const sbFragmentShader = "#version 300 es\n\
-precision mediump float;\n\
-out vec4 finalColor;\n\
-in vec3 uvCoords;\n\
-uniform samplerCube skybox;\n\
-void main(){\
-finalColor = texture(skybox, uvCoords);\
-}";
-
-var skyboxVertices = [        
-    -1.0,  1.0, -1.0,
-    -1.0, -1.0, -1.0,
-     1.0, -1.0, -1.0,
-     1.0, -1.0, -1.0,
-     1.0,  1.0, -1.0,
-    -1.0,  1.0, -1.0,
-
-    -1.0, -1.0,  1.0,
-    -1.0, -1.0, -1.0,
-    -1.0,  1.0, -1.0,
-    -1.0,  1.0, -1.0,
-    -1.0,  1.0,  1.0,
-    -1.0, -1.0,  1.0,
-
-     1.0, -1.0, -1.0,
-     1.0, -1.0,  1.0,
-     1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,
-     1.0,  1.0, -1.0,
-     1.0, -1.0, -1.0,
-
-    -1.0, -1.0,  1.0,
-    -1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,
-     1.0, -1.0,  1.0,
-    -1.0, -1.0,  1.0,
-
-    -1.0,  1.0, -1.0,
-     1.0,  1.0, -1.0,
-     1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,
-    -1.0,  1.0,  1.0,
-    -1.0,  1.0, -1.0,
-
-    -1.0, -1.0, -1.0,
-    -1.0, -1.0,  1.0,
-     1.0, -1.0, -1.0,
-     1.0, -1.0, -1.0,
-    -1.0, -1.0,  1.0,
-     1.0, -1.0,  1.0
-];
-
 var sbShader;
 var sbVao;
 var sbVbo;
@@ -71,6 +8,37 @@ var sbProjectionViewMatrixID;
 var sbCubeMap;
 
 function initSkyboxRenderer(){
+    let sbVertexShader = "#version 300 es\n\
+    in vec3 position;\n\
+    out vec3 uvCoords;\n\
+    uniform mat4 projectionViewMatrix;\n\
+    void  main(){\
+    mat4 pvm = projectionViewMatrix;\
+    uvCoords = position;\
+    vec4 pos = projectionViewMatrix * vec4(position, 1.0);\
+    gl_Position = pos.xyww;\
+    }";
+    let sbFragmentShader = "#version 300 es\n\
+    precision mediump float;\n\
+    out vec4 finalColor;\n\
+    in vec3 uvCoords;\n\
+    uniform samplerCube skybox;\n\
+    void main(){\
+    finalColor = texture(skybox, uvCoords);\
+    }";
+
+    let skyboxVertices = [        
+        -1.0,  1.0, -1.0,   -1.0, -1.0, -1.0,   1.0, -1.0, -1.0,    1.0, -1.0, -1.0,
+        1.0,  1.0, -1.0,    -1.0,  1.0, -1.0,   -1.0, -1.0,  1.0,   -1.0, -1.0, -1.0,
+        -1.0,  1.0, -1.0,   -1.0,  1.0, -1.0,   -1.0,  1.0,  1.0,   -1.0, -1.0,  1.0,
+        1.0, -1.0, -1.0,    1.0, -1.0,  1.0,    1.0,  1.0,  1.0,    1.0,  1.0,  1.0,
+        1.0,  1.0, -1.0,    1.0, -1.0, -1.0,    -1.0, -1.0,  1.0,   -1.0,  1.0,  1.0,
+        1.0,  1.0,  1.0,    1.0,  1.0,  1.0,    1.0, -1.0,  1.0,    -1.0, -1.0,  1.0,   
+        -1.0,  1.0, -1.0,   1.0,  1.0, -1.0,    1.0,  1.0,  1.0,    1.0,  1.0,  1.0,
+        -1.0,  1.0,  1.0,   -1.0,  1.0, -1.0,   -1.0, -1.0, -1.0,   -1.0, -1.0,  1.0,
+        1.0, -1.0, -1.0,    1.0, -1.0, -1.0,    -1.0, -1.0,  1.0,   1.0, -1.0,  1.0
+    ];
+
     sbShader = compileGLShader(gl, sbVertexShader, sbFragmentShader);
 
     sbCubeMap = gl.createTexture();
