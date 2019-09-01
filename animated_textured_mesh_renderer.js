@@ -16,6 +16,8 @@ var atmIbo;
 
 var atmPositionID;
 var atmNormalID;
+var atmWeightsID;
+var atmBonesID;
 var atmUvID;
 
 var atmCameraViewMatrixID;
@@ -29,43 +31,50 @@ var atmDefaultTexture = 0;
 
 function initAnimatedTexturedMeshRenderer(){
     let atmVertShader = "#version 300 es\n\
-in vec3 position;\n\
-in vec3 normal;\n\
-in vec2 uvCoordinate;\n\
-uniform mat4 cameraViewMatrix;\n\
-uniform mat4 modelMatrix;\n\
-out vec3 fragPos;\n\
-out vec3 norm;\n\
-out vec2 uv;\n\
-void main(){\
-    fragPos = vec3(modelMatrix * vec4(position, 1.0));\
-    norm = vec3(modelMatrix * vec4(normal, 0.0));\
-    uv = uvCoordinate;\
-    gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
-}";
+    in vec3 position;\n\
+    in vec3 normal;\n\
+    in vec3 weights;\n\
+    in vec3 bones;\n\
+    in vec2 uvCoordinate;\n\
+    uniform mat4 cameraViewMatrix;\n\
+    uniform mat4 modelMatrix;\n\
+    out vec3 fragPos;\n\
+    out vec3 norm;\n\
+    out vec2 uv;\n\
+    out vec3 ws;\n\
+    out vec3 bns;\n\
+    void main(){\
+        ws = weights;bns = bones;\
+        fragPos = vec3(modelMatrix * vec4(position, 1.0));\
+        norm = vec3(modelMatrix * vec4(normal, 0.0));\
+        uv = uvCoordinate;\
+        gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
+    }";
 
-let atmFragShader = "#version 300 es\n\
-precision mediump float;\n\
-in vec2 uv;\n\
-in vec3 norm;\n\
-in vec3 fragPos;\n\
-uniform vec3 lightPosition;\n\
-uniform sampler2D tex;\n\
-out vec4 finalColor;\n\
-void main(){\
-    float ambient = 0.2;\
-    vec3 lightDir = normalize(lightPosition - fragPos);\
-    float diff = max(dot(norm, lightDir), ambient);\
-    vec4 texCol = texture(tex, uv);\
-    vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
-    finalColor = finCol;\
-}";
+    let atmFragShader = "#version 300 es\n\
+    precision mediump float;\n\
+    in vec2 uv;\n\
+    in vec3 norm;\n\
+    in vec3 fragPos;\n\
+    uniform vec3 lightPosition;\n\
+    uniform sampler2D tex;\n\
+    out vec4 finalColor;\n\
+    void main(){\
+        float ambient = 0.2;\
+        vec3 lightDir = normalize(lightPosition - fragPos);\
+        float diff = max(dot(norm, lightDir), ambient);\
+        vec4 texCol = texture(tex, uv);\
+        vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
+        finalColor = finCol;\
+    }";
 
     atmShader = compileGLShader(gl, atmVertShader, atmFragShader);
     gl.useProgram(atmShader);
 
     atmPositionID = gl.getAttribLocation(atmShader, "position");
     atmNormalID = gl.getAttribLocation(atmShader, "normal");
+    atmWeightsID = gl.getAttribLocation(atmShader, "weights");
+    atmBonesID = gl.getAttribLocation(atmShader, "bones");
     atmUvID = gl.getAttribLocation(atmShader, "uvCoordinate");
 
     atmCameraViewMatrixID = gl.getUniformLocation(atmShader, "cameraViewMatrix");
@@ -83,10 +92,14 @@ void main(){\
     gl.bufferData(gl.ARRAY_BUFFER, 0, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(atmPositionID);
     gl.enableVertexAttribArray(atmNormalID);
+    gl.enableVertexAttribArray(atmWeightsID);
+    gl.enableVertexAttribArray(atmBonesID);
     gl.enableVertexAttribArray(atmUvID);
-    gl.vertexAttribPointer(atmPositionID, 3, gl.FLOAT, gl.FALSE, 32, 0);
-    gl.vertexAttribPointer(atmNormalID, 3, gl.FLOAT, gl.FALSE, 32, 12);
-    gl.vertexAttribPointer(atmUvID, 2, gl.FLOAT, gl.FALSE, 32, 24);
+    gl.vertexAttribPointer(atmPositionID, 3, gl.FLOAT, gl.FALSE, 56, 0);
+    gl.vertexAttribPointer(atmNormalID, 3, gl.FLOAT, gl.FALSE, 56, 12);
+    gl.vertexAttribPointer(atmWeightsID, 3, gl.FLOAT, gl.FALSE, 56, 24);
+    gl.vertexAttribPointer(atmBonesID, 3, gl.FLOAT, gl.FALSE, 56, 36);
+    gl.vertexAttribPointer(atmUvID, 2, gl.FLOAT, gl.FALSE, 56, 48);
     
     atmIbo = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, atmIbo);
@@ -134,14 +147,14 @@ function createAnimatedTexturedMesh(vertices, indices, textureId = atmDefaultTex
     gl.deleteBuffer(atmVbo);
     atmVbo = nvbo;
 
-    let startIndex = tmVertexBufferSize / (4 * 8);
+    let startIndex = atmVertexBufferSize / 56;
     for(let i = 0; i < indices.length; i++){
         indices[i] += startIndex;
     }
 
     let nibo = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, nibo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesSize + tmIndexBufferSize, gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesSize + atmIndexBufferSize, gl.STATIC_DRAW);
     gl.bindBuffer(gl.COPY_READ_BUFFER, atmIbo);
     gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.ELEMENT_ARRAY_BUFFER, 0, 0, atmIndexBufferSize);
     gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, atmIndexBufferSize, new Uint32Array(indices));
@@ -150,17 +163,21 @@ function createAnimatedTexturedMesh(vertices, indices, textureId = atmDefaultTex
 
     gl.enableVertexAttribArray(atmPositionID);
     gl.enableVertexAttribArray(atmNormalID);
+    gl.enableVertexAttribArray(atmWeightsID);
+    gl.enableVertexAttribArray(atmBonesID);
     gl.enableVertexAttribArray(atmUvID);
-    gl.vertexAttribPointer(atmPositionID, 3, gl.FLOAT, gl.FALSE, 32, 0);
-    gl.vertexAttribPointer(atmNormalID, 3, gl.FLOAT, gl.FALSE, 32, 12);
-    gl.vertexAttribPointer(atmUvID, 2, gl.FLOAT, gl.FALSE, 32, 24);
+    gl.vertexAttribPointer(atmPositionID, 3, gl.FLOAT, gl.FALSE, 56, 0);
+    gl.vertexAttribPointer(atmNormalID, 3, gl.FLOAT, gl.FALSE, 56, 12);
+    gl.vertexAttribPointer(atmWeightsID, 3, gl.FLOAT, gl.FALSE, 56, 24);
+    gl.vertexAttribPointer(atmBonesID, 3, gl.FLOAT, gl.FALSE, 56, 36);
+    gl.vertexAttribPointer(atmUvID, 2, gl.FLOAT, gl.FALSE, 56, 48);
 
-    let tm = new TexturedMesh();
-    tm.totalIndices = indices.length;
-    tm.indexOffset = atmIndexBufferSize;
-    tm.textureID = textureId;
+    let atm = new AnimatedTexturedMesh();
+    atm.totalIndices = indices.length;
+    atm.indexOffset = atmIndexBufferSize;
+    atm.textureID = textureId;
     atmVertexBufferSize += verticesSize;
     atmIndexBufferSize += indicesSize;
     
-    return tm;
+    return atm;
 }

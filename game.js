@@ -8,6 +8,7 @@ var gameCamera;
 var gameLight = new Vector3(50, 50, 50);
 
 var staticMeshes = [];
+var animatedMeshes = [];
 
 window.onload = function(){
     buttonDiv = document.getElementById('buttonDivID');
@@ -38,16 +39,9 @@ window.onload = function(){
     gameCamera.position.z = 5;
     gameCamera.updateView();
 
-    let verts = monkeyMeshData[0];
-    let inds = monkeyMeshData[1];
-
-    let pix = monkeyTextureData;
-    
-    let sbPix = [255, 200, 200, 255,  200, 200, 255, 255,
-                 200, 200, 255, 255,  255, 200, 200, 255];
-
     initSkyboxRenderer();
     initTexturedMeshRenderer();
+    initAnimatedTexturedMeshRenderer();
 
     loadSkyboxFaceImage(skyboxImageData[0], 256, 256, "-x");
     loadSkyboxFaceImage(skyboxImageData[1], 256, 256, "+z");
@@ -56,10 +50,16 @@ window.onload = function(){
     loadSkyboxFaceImage(skyboxImageData[4], 256, 256, "-y");
     loadSkyboxFaceImage(skyboxImageData[5], 256, 256, "+y");
 
-    let msh = createTexturedMesh(verts, inds);
-    msh.textureID = generateGLTexture2D(pix, 1024, 1024, "linear");
+    let msh = createTexturedMesh(monkeyMeshData[0], monkeyMeshData[1]);
+    msh.textureID = generateGLTexture2D(monkeyTextureData, 1024, 1024, "linear");
+    msh.position.z = 3;
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
     staticMeshes.push(msh);
+
+    msh = createAnimatedTexturedMesh(rockMonsterMeshData[0], rockMonsterMeshData[1]);
+    msh.textureID = generateGLTexture2D(rockMonsterTextureData, 1024, 1024, "linear");
+    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    animatedMeshes.push(msh);
 
     setInterval(updateScreen, 0);
 }
@@ -71,6 +71,7 @@ function updateScreen(){
     gameCamera.updateView(0.01);
     
     renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
+    renderAnimatedTexturedMeshes(animatedMeshes, gameCamera, gameLight);
     renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
 }
 
