@@ -6,8 +6,31 @@ class AnimatedTexturedMesh{
         this.totalIndices = 0;
         this.indexOffset = 0;
         this.textureID = 0;
+        this.animation = null;
     }
 }
+
+class Bone{
+    constructor(os = new Vector3(), or = new Quaternion()){
+        this.offset = os;
+        this.orientation = or;
+        this.children = [];
+    }
+};
+
+class Animation{
+    constructor(){
+        this.poses = [];
+        this.invBT = [];
+        this.frameDurations = [];
+        this.divTime = 0;
+        this.currentFrame = 0;
+        this.nextFrame = 1;
+        this.fps = 24;
+        this.currentPoseDuration = 0;
+        this.currentPoseTime = 0;
+    }
+};
 
 var atmShader;
 var atmVao;
@@ -19,6 +42,7 @@ var atmNormalID;
 var atmWeightsID;
 var atmBonesID;
 var atmUvID;
+var atmBoneMatricesID;
 
 var atmCameraViewMatrixID;
 var atmModelViewMatrixID;
@@ -28,6 +52,7 @@ var atmIndexBufferSize;
 var atmVertexBufferSize;
 
 var atmDefaultTexture = 0;
+var atmMatrixIndexCounter = 0;
 
 function initAnimatedTexturedMeshRenderer(){
     let atmVertShader = "#version 300 es\n\
@@ -37,16 +62,21 @@ function initAnimatedTexturedMeshRenderer(){
     in vec3 bones;\n\
     in vec2 uvCoordinate;\n\
     uniform mat4 cameraViewMatrix;\n\
-    uniform mat4 modelMatrix;\n\
+    uniform mat4 boneMatrices[32];\n\
     out vec3 fragPos;\n\
     out vec3 norm;\n\
     out vec2 uv;\n\
-    out vec3 ws;\n\
-    out vec3 bns;\n\
     void main(){\
-        ws = weights;bns = bones;\
-        fragPos = vec3(modelMatrix * vec4(position, 1.0));\
-        norm = vec3(modelMatrix * vec4(normal, 0.0));\
+        vec4 np = vec4(position, 1.0);\
+        vec4 nf = vec4(normal, 0.0);\
+        vec4 nv = (boneMatrices[int(bones.x)] * np) * weights.x;\
+        nv += (boneMatrices[int(bones.y)] * np) * weights.y;\
+        nv += (boneMatrices[int(bones.z)] * np) * weights.z;\
+        vec4 nn = (boneMatrices[int(bones.x)] * nf) * weights.x;\
+        nn += (boneMatrices[int(bones.y)] * nf) * weights.y;\
+        nn += (boneMatrices[int(bones.z)] * nf) * weights.z;\
+        fragPos = vec3(nv);\
+        norm = vec3(nn);\
         uv = uvCoordinate;\
         gl_Position = cameraViewMatrix * vec4(fragPos, 1.0);\
     }";
@@ -78,8 +108,8 @@ function initAnimatedTexturedMeshRenderer(){
     atmUvID = gl.getAttribLocation(atmShader, "uvCoordinate");
 
     atmCameraViewMatrixID = gl.getUniformLocation(atmShader, "cameraViewMatrix");
-    atmModelViewMatrixID = gl.getUniformLocation(atmShader, "modelMatrix");
     atmLightPositionID = gl.getUniformLocation(atmShader, "lightPosition");
+    atmBoneMatricesID = gl.getUniformLocation(atmShader, "boneMatrices");
 
     atmVao = gl.createVertexArray();
     gl.bindVertexArray(atmVao);
@@ -119,15 +149,32 @@ function initAnimatedTexturedMeshRenderer(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 }
 
-function renderAnimatedTexturedMeshes(meshes, camera, lightPosition){
+function renderAnimatedTexturedMeshes(meshes, camera, lightPosition, deltaTime){
     gl.useProgram(atmShader);
     gl.bindVertexArray(atmVao);
     gl.uniform3fv(atmLightPositionID, lightPosition.toArray());
+
     for(let i = 0; i < meshes.length; i++){
+        let mats = [];
+        atmMatrixIndexCounter = 0;
+        updateAnimation(meshes[i].animation, deltaTime);
+        let modMat = Matrix4.buildModelMatrix4(meshes[i].position, meshes[i].scale, meshes[i].orientation);
+        buildAnimationMatrixArray(meshes[i].animation, 
+                                  modMat, mats, 
+                                  meshes[i].animation.poses[meshes[i].animation.currentFrame], 
+                                  meshes[i].animation.poses[meshes[i].animation.nextFrame], 
+                                  meshes[i].animation.divTime);
+
+        let matz = [];
+        for(let i = 0; i < mats.length; i++){
+            for(let j = 0; j < 16; j++){
+                matz.push(mats[i][j]);
+            }
+        }
+        gl.uniformMatrix4fv(atmBoneMatricesID, gl.TRUE, new Float32Array(matz));
+
         let mesh = meshes[i];
         gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
-        let modelMat = Matrix4.buildModelMatrix4(mesh.position, mesh.scale, mesh.orientation);
-        gl.uniformMatrix4fv(atmModelViewMatrixID, gl.FALSE, modelMat.m);
         gl.uniformMatrix4fv(atmCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
         gl.drawElements(gl.TRIANGLES, mesh.totalIndices, gl.UNSIGNED_INT, mesh.indexOffset);
     }
@@ -180,4 +227,77 @@ function createAnimatedTexturedMesh(vertices, indices, textureId = atmDefaultTex
     atmIndexBufferSize += indicesSize;
     
     return atm;
+}
+
+function buildAnimationMatrixArray(animation, parent, aniMat, start, end, t){
+    let lo = Vector3.linearInterpolate(start.offset, end.offset, t);
+    let ro = Quaternion.slerp(start.orientation, end.orientation, t);
+    let m2 = Matrix4.buildModelMatrix4(lo, UNIT_SCALE_VECTOR, ro);
+    m2 = Matrix4.multiply(parent, m2);
+    let m3 = Matrix4.multiply(m2, animation.invBT[atmMatrixIndexCounter++]);
+    
+
+    aniMat.push(m3.m);
+    for(let i = 0; i < start.children.length; i++){
+        buildAnimationMatrixArray(animation, m2, aniMat, start.children[i], end.children[i], t);
+    }
+}
+
+function updateAnimation(animation, deltaTime){
+    animation.currentPoseTime += deltaTime;
+        if(animation.currentPoseTime >= animation.currentPoseDuration){ 
+            animation.currentPoseTime -= animation.currentPoseDuration;
+            animation.currentFrame++;
+            animation.nextFrame++;
+            if(animation.currentFrame >= animation.poses.length - 1) {
+                animation.currentFrame = 0;
+                animation.nextFrame = 1;
+            }
+
+            animation.currentPoseDuration = animation.frameDurations[animation.currentFrame] / animation.fps;
+        }
+    animation.divTime = animation.currentPoseTime / animation.currentPoseDuration;
+}
+
+function interpolateMatrices(m1, m2, t){
+    let q1 = m1.toQuaternion();
+    let q2 = m2.toQuaternion();
+    let l1 = new Vector3(m1.m[12], m1.m[13], m1.m[14]);
+    let l2 = new Vector3(m2.m[12], m2.m[13], m2.m[14]);
+
+    let qi = Quaternion.slerp(q1, q2, t);
+    let li = Vector3.slerp(l1, l2, t);
+    return Matrix4.buildModelMatrix4(li, new Vector3(1, 1, 1), qi);
+}
+
+function parseBone(bn){
+    let loc = new Vector3(bn[0][0], bn[0][1], bn[0][2]);
+    let rot = new Quaternion(bn[1][0], bn[1][1], bn[1][2], bn[1][3]);
+    let b = new Bone(loc, rot);
+    
+    for(let i = 0; i < bn[2].length; i++){
+        b.children.push(parseBone(bn[2][i]));
+    }
+    
+    return b;
+}
+
+function buildAnimation(anim, fps = 24){
+    let fAnim = new Animation();
+    for(let i = 0; i < anim[0].length; i++){
+        fAnim.poses.push(parseBone(anim[0][i]));
+    }
+    for(let i = 0; i < anim[1].length; i++){
+        let m = new Matrix4();
+        for(let j = 0; j < 16; j++){
+            m.m[j] = anim[1][i][j];
+        }
+        fAnim.invBT.push(m);
+    }
+    for(let i = 0; i < anim[2].length; i++){
+        fAnim.frameDurations.push(anim[2][i]);
+    }
+    fAnim.fps = fps;
+    fAnim.currentPoseDuration = fAnim.frameDurations[0] / fAnim.fps;
+    return fAnim;
 }

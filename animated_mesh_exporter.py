@@ -18,7 +18,7 @@ clear()
 def addVertex(list, vert):
     for i, tv in enumerate(list):
         if vert == tv:
-            return i;
+            return i
     list.append(vert)
     return len(list) - 1
 

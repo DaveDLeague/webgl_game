@@ -10,6 +10,10 @@ var gameLight = new Vector3(50, 50, 50);
 var staticMeshes = [];
 var animatedMeshes = [];
 
+var starTime = 0;
+var endTime = 0;
+var deltaTime = 0;
+
 window.onload = function(){
     buttonDiv = document.getElementById('buttonDivID');
     codeDiv = document.getElementById('codeDivID');
@@ -54,13 +58,15 @@ window.onload = function(){
     msh.textureID = generateGLTexture2D(monkeyTextureData, 1024, 1024, "linear");
     msh.position.z = 3;
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
-    staticMeshes.push(msh);
+    //staticMeshes.push(msh);
 
     msh = createAnimatedTexturedMesh(rockMonsterMeshData[0], rockMonsterMeshData[1]);
     msh.textureID = generateGLTexture2D(rockMonsterTextureData, 1024, 1024, "linear");
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.animation = buildAnimation(rockMonsterAnimation);
     animatedMeshes.push(msh);
 
+    startTime = new Date().getTime();
     setInterval(updateScreen, 0);
 }
 
@@ -68,11 +74,14 @@ function updateScreen(){
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.clear(gl.DEPTH_BUFFER_BIT);
 
-    gameCamera.updateView(0.01);
-    
+    gameCamera.updateView(deltaTime);
+
     renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
-    renderAnimatedTexturedMeshes(animatedMeshes, gameCamera, gameLight);
+    renderAnimatedTexturedMeshes(animatedMeshes, gameCamera, gameLight, deltaTime);
     renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
+    endTime = new Date().getTime();
+    deltaTime = (endTime - startTime) / 1000.0;
+    startTime = endTime;
 }
 
 function windowResize(){
