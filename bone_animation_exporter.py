@@ -152,7 +152,6 @@ img = bpy.data.images['rock_monster.png']
 uvs = bpy.data.objects['rock_monster'].data.uv_layers[0].data
 
 vts = exportAnimatedTextureMeshData(polys, vertices, uvs)
-print(len(vts[0]))
 pxls = getPixelDataFromImage(img)
 
 
