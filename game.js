@@ -40,7 +40,8 @@ window.onload = function(){
     gameCamera = new Camera();
 
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
-    gameCamera.position.z = 5;
+    gameCamera.position = new Vector3(3, 3, 5);
+    gameCamera.orientation.rotate(new Vector3(1, -1, 0), 0.4);
     gameCamera.updateView();
 
     initSkyboxRenderer();
@@ -54,11 +55,11 @@ window.onload = function(){
     loadSkyboxFaceImage(skyboxImageData[4], 256, 256, "-y");
     loadSkyboxFaceImage(skyboxImageData[5], 256, 256, "+y");
 
-    let msh = createTexturedMesh(monkeyMeshData[0], monkeyMeshData[1]);
-    msh.textureID = generateGLTexture2D(monkeyTextureData, 1024, 1024, "linear");
-    msh.position.z = 3;
+    let msh = createTexturedMesh(terrainMeshData[0], terrainMeshData[1]);
+    msh.textureID = generateGLTexture2D(terrainTextureData, 1024, 1024, "linear");
+    msh.position = new Vector3(0, -24.6, 0);
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
-    //staticMeshes.push(msh);
+    staticMeshes.push(msh);
 
     msh = createAnimatedTexturedMesh(rockMonsterMeshData[0], rockMonsterMeshData[1]);
     msh.textureID = generateGLTexture2D(rockMonsterTextureData, 1024, 1024, "linear");
@@ -93,6 +94,9 @@ function windowResize(){
     canvas.style.left = window.innerWidth * 0.25;
     canvas.width = window.innerWidth * 0.96 * 0.75;
     canvas.height = window.innerHeight * 0.96 * 0.75;
+    if(gl != null){
+        gl.viewport(0, 0, canvas.width, canvas.height);
+    }
 }
 
 function keyUp(event){ 

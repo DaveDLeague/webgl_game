@@ -1,4 +1,5 @@
 import bpy
+import math
 from os import system, name
 
 def clear(): 
@@ -45,6 +46,7 @@ def exportAnimatedTextureMeshData(polys, vertices, uvs):
                     break
                 weights[j] = round(g.weight, 4)
                 bones[j] = round(g.group, 4)
+            print(weights[0] + weights[1] + weights[2])
                 
             uv.append(round(uvs[p.loop_indices[i]].uv.x, 4))
             uv.append(round(uvs[p.loop_indices[i]].uv.y, 4))
