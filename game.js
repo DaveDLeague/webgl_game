@@ -64,7 +64,9 @@ window.onload = function(){
     msh = createAnimatedTexturedMesh(rockMonsterMeshData[0], rockMonsterMeshData[1]);
     msh.textureID = generateGLTexture2D(rockMonsterTextureData, 1024, 1024, "linear");
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
-    msh.animation = buildAnimation(rockMonsterAnimation);
+    msh.animations["wave"] = buildAnimation(rockMonsterAnimation["wave"]);
+    msh.animations["raisedaroof"] = buildAnimation(rockMonsterAnimation["raisedaroof"]);
+    msh.currentAnimation = msh.animations["wave"];
     animatedMeshes.push(msh);
 
     startTime = new Date().getTime();
@@ -152,6 +154,7 @@ function keyUp(event){
     }
 }
 
+var an = false;
 function keyDown(event){
     switch(event.keyCode){
         case KEY_W:{
@@ -200,6 +203,16 @@ function keyDown(event){
         }
         case KEY_E:{
             gameCamera.rollRight = true;
+            break;
+        }
+        case KEY_SPACE:{
+            an = !an;
+            if(an){
+                animatedMeshes[0].currentAnimation = animatedMeshes[0].animations["wave"];
+            }else{
+                animatedMeshes[0].currentAnimation = animatedMeshes[0].animations["raisedaroof"];
+            }
+            
             break;
         }
     }

@@ -146,7 +146,9 @@ scene.frame_set(0)
 pose = bpy.data.objects['Armature'].pose
 fcurves = bpy.data.actions['ArmatureAction'].fcurves
 keyframes = getKeyframesInAnimation(fcurves, 1, 25)
-animation = exportBoneAnimationData(pose, scene, keyframes)
+animation1 = exportBoneAnimationData(pose, scene, keyframes)
+keyframes = getKeyframesInAnimation(fcurves, 26, 50)
+animation2 = exportBoneAnimationData(pose, scene, keyframes)
 
 polys = bpy.data.objects['rock_monster'].data.polygons
 vertices = bpy.data.objects['rock_monster'].data.vertices
@@ -157,7 +159,7 @@ vts = exportAnimatedTextureMeshData(polys, vertices, uvs)
 pxls = getPixelDataFromImage(img)
 
 
-fileText = "var rockMonsterAnimation = " + str(animation) + ";\n"
+fileText = "var rockMonsterAnimation = {" + "\"wave\":" + str(animation1) + ",\"raisedaroof\":" + str(animation2) + "};\n"
 fileText += "var rockMonsterMeshData = " + str(vts) + ";\n"
 fileText += "var rockMonsterTextureData = " + str(pxls) + ";"
 

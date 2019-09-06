@@ -6,7 +6,8 @@ class AnimatedTexturedMesh{
         this.totalIndices = 0;
         this.indexOffset = 0;
         this.textureID = 0;
-        this.animation = null;
+        this.animations = {};
+        this.currentAnimation;
     }
 }
 
@@ -157,13 +158,13 @@ function renderAnimatedTexturedMeshes(meshes, camera, lightPosition, deltaTime){
     for(let i = 0; i < meshes.length; i++){
         let mats = [];
         atmMatrixIndexCounter = 0;
-        updateAnimation(meshes[i].animation, deltaTime);
+        updateAnimation(meshes[i].currentAnimation, deltaTime);
         let modMat = Matrix4.buildModelMatrix4(meshes[i].position, meshes[i].scale, meshes[i].orientation);
-        buildAnimationMatrixArray(meshes[i].animation, 
+        buildAnimationMatrixArray(meshes[i].currentAnimation, 
                                   modMat, mats, 
-                                  meshes[i].animation.poses[meshes[i].animation.currentFrame], 
-                                  meshes[i].animation.poses[meshes[i].animation.nextFrame], 
-                                  meshes[i].animation.divTime);
+                                  meshes[i].currentAnimation.poses[meshes[i].currentAnimation.currentFrame], 
+                                  meshes[i].currentAnimation.poses[meshes[i].currentAnimation.nextFrame], 
+                                  meshes[i].currentAnimation.divTime);
 
         let matz = [];
         for(let i = 0; i < mats.length; i++){
