@@ -9,6 +9,7 @@ var gameLight = new Vector3(50, 50, 50);
 
 var staticMeshes = [];
 var animatedMeshes = [];
+var particleEmitters = [];
 
 var starTime = 0;
 var endTime = 0;
@@ -35,18 +36,19 @@ window.onload = function(){
     gl = canvas.getContext('webgl2');
     gl.clearColor(0, 1, 1, 1);  
     gl.enable(gl.DEPTH_TEST); 
-    gl.enable(gl.CULL_FACE); 
+    gl.enable(gl.CULL_FACE);
+  
 
     gameCamera = new Camera();
 
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
-    gameCamera.position = new Vector3(3, 3, 5);
-    gameCamera.orientation.rotate(new Vector3(1, -1, 0), 0.4);
+    gameCamera.position = new Vector3(0, 0, 50);
     gameCamera.updateView();
 
     initSkyboxRenderer();
     initTexturedMeshRenderer();
     initAnimatedTexturedMeshRenderer();
+    initParticleRenderer();
 
     loadSkyboxFaceImage(skyboxImageData[0], 256, 256, "-x");
     loadSkyboxFaceImage(skyboxImageData[1], 256, 256, "+z");
@@ -60,6 +62,14 @@ window.onload = function(){
     msh.position = new Vector3(0, -24.6, 0);
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
     staticMeshes.push(msh);
+
+    let pe = createParticleEmitter(100, function(p, deltaTime){
+        for(let i = 0; i < p.positions.length; i++){
+            p.positions[i].add(p.velocities[i]);
+        }
+    });
+    
+    particleEmitters.push(pe);
 
     msh = createAnimatedTexturedMesh(rockMonsterMeshData[0], rockMonsterMeshData[1]);
     msh.textureID = generateGLTexture2D(rockMonsterTextureData, 1024, 1024, "linear");
@@ -81,6 +91,7 @@ function updateScreen(){
 
     renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
     renderAnimatedTexturedMeshes(animatedMeshes, gameCamera, gameLight, deltaTime);
+    renderParticles(particleEmitters, gameCamera);
     renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
     endTime = new Date().getTime();
     deltaTime = (endTime - startTime) / 1000.0;
@@ -154,7 +165,7 @@ function keyUp(event){
     }
 }
 
-var an = false;
+var an = true;
 function keyDown(event){
     switch(event.keyCode){
         case KEY_W:{
