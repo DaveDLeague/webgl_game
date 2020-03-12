@@ -55,3 +55,11 @@ function absoluteValue(v){
 function randomInteger(max){
     return Math.floor(Math.random() * max);
 }
+
+function randomIntInRange(min, max){
+    return Math.floor(Math.random() * (max - min)) + min
+}
+
+function randomFloatInRange(min, max){
+    return (Math.random() * (max - min)) + min
+}

@@ -6,9 +6,10 @@ class AnimatedTexturedMesh{
         this.totalIndices = 0;
         this.indexOffset = 0;
         this.textureID = 0;
-        this.animation = null;
+        this.animations = {};
+        this.currentAnimation;
     }
-}
+};
 
 class Bone{
     constructor(os = new Vector3(), or = new Quaternion()){
@@ -153,17 +154,18 @@ function renderAnimatedTexturedMeshes(meshes, camera, lightPosition, deltaTime){
     gl.useProgram(atmShader);
     gl.bindVertexArray(atmVao);
     gl.uniform3fv(atmLightPositionID, lightPosition.toArray());
+    gl.enable(gl.CULL_FACE);
 
     for(let i = 0; i < meshes.length; i++){
         let mats = [];
         atmMatrixIndexCounter = 0;
-        updateAnimation(meshes[i].animation, deltaTime);
+        //updateAnimation(meshes[i].currentAnimation, deltaTime);
         let modMat = Matrix4.buildModelMatrix4(meshes[i].position, meshes[i].scale, meshes[i].orientation);
-        buildAnimationMatrixArray(meshes[i].animation, 
+        buildAnimationMatrixArray(meshes[i].currentAnimation, 
                                   modMat, mats, 
-                                  meshes[i].animation.poses[meshes[i].animation.currentFrame], 
-                                  meshes[i].animation.poses[meshes[i].animation.nextFrame], 
-                                  meshes[i].animation.divTime);
+                                  meshes[i].currentAnimation.poses[meshes[i].currentAnimation.currentFrame], 
+                                  meshes[i].currentAnimation.poses[meshes[i].currentAnimation.nextFrame], 
+                                  meshes[i].currentAnimation.divTime);
 
         let matz = [];
         for(let i = 0; i < mats.length; i++){
@@ -257,6 +259,12 @@ function updateAnimation(animation, deltaTime){
             animation.currentPoseDuration = animation.frameDurations[animation.currentFrame] / animation.fps;
         }
     animation.divTime = animation.currentPoseTime / animation.currentPoseDuration;
+}
+
+function updateAnimations(animations, deltaTime){
+    for(let i = 0; i < animations.length; i++){
+        updateAnimation(animations[i].currentAnimation, deltaTime);
+    }
 }
 
 function interpolateMatrices(m1, m2, t){

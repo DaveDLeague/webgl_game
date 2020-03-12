@@ -146,20 +146,20 @@ scene.frame_set(0)
 pose = bpy.data.objects['Armature'].pose
 fcurves = bpy.data.actions['ArmatureAction'].fcurves
 keyframes = getKeyframesInAnimation(fcurves, 1, 25)
-animation = exportBoneAnimationData(pose, scene, keyframes)
+animation1 = exportBoneAnimationData(pose, scene, keyframes)
 
-polys = bpy.data.objects['rock_monster'].data.polygons
-vertices = bpy.data.objects['rock_monster'].data.vertices
-img = bpy.data.images['rock_monster.png']
-uvs = bpy.data.objects['rock_monster'].data.uv_layers[0].data
+polys = bpy.data.objects['boo_lean'].data.polygons
+vertices = bpy.data.objects['boo_lean'].data.vertices
+img = bpy.data.images['boo_lean.png']
+uvs = bpy.data.objects['boo_lean'].data.uv_layers[0].data
 
 vts = exportAnimatedTextureMeshData(polys, vertices, uvs)
 pxls = getPixelDataFromImage(img)
 
 
-fileText = "var rockMonsterAnimation = " + str(animation) + ";\n"
-fileText += "var rockMonsterMeshData = " + str(vts) + ";\n"
-fileText += "var rockMonsterTextureData = " + str(pxls) + ";"
+fileText = "var boo_leanAnimation = {\"idle\":" + str(animation1) + "};\n"
+fileText += "var boo_leanMeshData = " + str(vts) + ";\n"
+fileText += "var boo_leanTextureData = " + str(pxls) + ";"
 
 file = open("C:/Users/Dave/Desktop/rockMonsterData.js", "w")
 file.write(fileText)

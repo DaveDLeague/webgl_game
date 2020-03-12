@@ -1,4 +1,7 @@
 import bpy
+import math
+import struct
+from array import array
 from os import system, name
 
 vertexList = []
@@ -24,7 +27,7 @@ def addVertex(list, vert):
 
 for p in polys:
     indCt = len(indexList)
-    for i, v in enumerate(p.vertices):
+    for i, v in enumerate(reversed(p.vertices)):
         pos = []
         norm = []
         weights = [0, 0, 0]
@@ -53,9 +56,10 @@ for p in polys:
         if i < 3:
             indexList.append(addVertex(vertexList, vertex))
         else:
-            indexList.append(indexList[len(indexList) - 1])
-            indexList.append(addVertex(vertexList, vertex))
             indexList.append(indexList[indCt])
+            indexList.append(indexList[len(indexList) - 2])
+            indexList.append(addVertex(vertexList, vertex))
+            
 
 nvList = []
 for v in vertexList:
@@ -70,17 +74,13 @@ for v in vertexList:
     for u in v[4]:
         nvList.append(u)
 
-texturePixels = []
-for p in bpy.data.images['rock_monster.png'].pixels:
-    texturePixels.append(int(p * 255))
 
+vertexSize = struct.pack('i', len(nvList) * 4)
+indexSize = struct.pack('i', len(indexList) * 4)
 
-fileText = "var rockMonsterMeshData = ["
-fileText += str(nvList) + ","
-fileText += str(indexList) + "];\n"
-
-fileText += "var rockMonsterTextureData = " + str(texturePixels) + ";"
-            
-file = open('C:/Users/Dave/Desktop/rockMonsterData.js', 'w')
-file.write(fileText);
+file = open('/Users/dave/Desktop/tentacle.animesh', 'wb')
+file.write(vertexSize)
+file.write(indexSize)
+array('f', nvList).tofile(file)
+array('i', indexList).tofile(file)
 file.close()
