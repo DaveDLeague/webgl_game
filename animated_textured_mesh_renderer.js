@@ -9,7 +9,7 @@ class AnimatedTexturedMesh{
         this.animations = {};
         this.currentAnimation;
     }
-}
+};
 
 class Bone{
     constructor(os = new Vector3(), or = new Quaternion()){
@@ -154,11 +154,12 @@ function renderAnimatedTexturedMeshes(meshes, camera, lightPosition, deltaTime){
     gl.useProgram(atmShader);
     gl.bindVertexArray(atmVao);
     gl.uniform3fv(atmLightPositionID, lightPosition.toArray());
+    gl.enable(gl.CULL_FACE);
 
     for(let i = 0; i < meshes.length; i++){
         let mats = [];
         atmMatrixIndexCounter = 0;
-        updateAnimation(meshes[i].currentAnimation, deltaTime);
+        //updateAnimation(meshes[i].currentAnimation, deltaTime);
         let modMat = Matrix4.buildModelMatrix4(meshes[i].position, meshes[i].scale, meshes[i].orientation);
         buildAnimationMatrixArray(meshes[i].currentAnimation, 
                                   modMat, mats, 
@@ -258,6 +259,12 @@ function updateAnimation(animation, deltaTime){
             animation.currentPoseDuration = animation.frameDurations[animation.currentFrame] / animation.fps;
         }
     animation.divTime = animation.currentPoseTime / animation.currentPoseDuration;
+}
+
+function updateAnimations(animations, deltaTime){
+    for(let i = 0; i < animations.length; i++){
+        updateAnimation(animations[i].currentAnimation, deltaTime);
+    }
 }
 
 function interpolateMatrices(m1, m2, t){

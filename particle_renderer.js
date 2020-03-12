@@ -6,7 +6,9 @@ class ParticleEmitter{
         this.orientations = [];
         this.velocities = [];
         this.durrations = [];
+        this.startDelays = []
         this.textureID = paDefaultTexture;
+        this.totalTime = 0;
         this.updateFunction;
         this.repeat = false;
         this.discard = false;
@@ -19,42 +21,43 @@ var paVbo;
 var paInstanceBuffer;
 
 var paPositionID;
+var paNormalID;
 var paUvID;
 var paInstanceMatrixID;
 
 var paCameraViewMatrixID;
-var paProjectionMatrixID;
-var paCameraPositionID;
 
 var paDefaultTexture = 0;
 
 function initParticleRenderer(){
     let paVertShader = "#version 300 es\n\
     in vec3 position;\n\
+    in vec3 normal;\n\
     in vec2 uvCoordinate;\n\
     in mat4 instanceMatrix;\n\
     uniform mat4 cameraViewMatrix;\n\
-    uniform vec3 cameraPosition;\n\
+    out vec3 fragPos;\n\
+    out vec3 norm;\n\
     out vec2 uv;\n\
-    mat4 rotationMatrix(vec3 axis, float angle){\
-    axis = normalize(axis);\
-    float s = sin(angle);\
-    float c = cos(angle);\
-    float oc = 1.0 - c;\
-    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,\
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,\
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,\
-                0.0,                                0.0,                                0.0,                                1.0);\
-    }\n\
-    void main(){\
-        uv = uvCoordinate;\
-        gl_Position = cameraViewMatrix  * instanceMatrix * vec4(position, 1.0);\
+    void main(){\n\
+        vec3 particleCenter = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);\n\
+        vec2 particleSize = vec2(instanceMatrix[0][0], instanceMatrix[1][1] * 0.5);\n\
+        vec3 cameraRight = vec3(cameraViewMatrix[0][0], cameraViewMatrix[1][0], cameraViewMatrix[2][0]);\n\
+        vec3 cameraUp = vec3(cameraViewMatrix[0][1], cameraViewMatrix[1][1], cameraViewMatrix[2][1]);\n\
+        vec3 newPos = particleCenter + cameraRight * position.x * particleSize.x + \
+                                       cameraUp * position.y * (particleSize.y);\n\
+        uv = uvCoordinate;\n\
+        norm = normal;\n\
+        gl_Position = cameraViewMatrix * vec4(newPos, 1.0);\n\
     }";
 
     let paFragShader = "#version 300 es\n\
     precision mediump float;\n\
     in vec2 uv;\n\
+    in vec3 norm;\n\
+    in vec3 fragPos;\n\
     uniform sampler2D tex;\n\
+    uniform vec3 lightPosition;\n\
     out vec4 finalColor;\n\
     void main(){\
         finalColor = texture(tex, uv);\
@@ -64,31 +67,33 @@ function initParticleRenderer(){
     gl.useProgram(paShader);
 
     paPositionID = gl.getAttribLocation(paShader, "position");
+    paNormalID = gl.getAttribLocation(paShader, "normal");
     paUvID = gl.getAttribLocation(paShader, "uvCoordinate");
     paInstanceMatrixID = gl.getAttribLocation(paShader, "instanceMatrix");
 
     paCameraViewMatrixID = gl.getUniformLocation(paShader, "cameraViewMatrix");
-    paCameraPositionID = gl.getUniformLocation(paShader, "cameraPosition");
 
     paVao = gl.createVertexArray();
     gl.bindVertexArray(paVao);
 
     let verts = [
-        -0.5, -0.5, 0.0,    0.0, 1.0,  
-        0.5, -0.5, 0.0,     1.0, 1.0,    
-        0.5, 0.5, 0.0,      1.0, 0.0,     
-        0.5, 0.5, 0.0,      1.0, 0.0,
-        -0.5, 0.5, 0.0,     0.0, 0.0,    
-        -0.5, -0.5, 0.0,    0.0, 1.0 
+        -0.5, -0.5, 0.0,    0.0, 0.0, 1.0,      0.0, 1.0,  
+        0.5, -0.5, 0.0,     0.0, 0.0, 1.0,      1.0, 1.0,    
+        0.5, 0.5, 0.0,      0.0, 0.0, 1.0,      1.0, 0.0,     
+        0.5, 0.5, 0.0,      0.0, 0.0, 1.0,      1.0, 0.0,
+        -0.5, 0.5, 0.0,     0.0, 0.0, 1.0,      0.0, 0.0,    
+        -0.5, -0.5, 0.0,    0.0, 0.0, 1.0,      0.0, 1.0 
     ];
 
     paVbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, paVbo);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(paPositionID);
+    gl.enableVertexAttribArray(paNormalID);
     gl.enableVertexAttribArray(paUvID);
-    gl.vertexAttribPointer(paPositionID, 3, gl.FLOAT, gl.FALSE, 20, 0);
-    gl.vertexAttribPointer(paUvID, 2, gl.FLOAT, gl.FALSE, 20, 12);
+    gl.vertexAttribPointer(paPositionID, 3, gl.FLOAT, gl.FALSE, 32, 0);
+    gl.vertexAttribPointer(paNormalID, 3, gl.FLOAT, gl.FALSE, 32, 12);
+    gl.vertexAttribPointer(paUvID, 2, gl.FLOAT, gl.FALSE, 32, 24);
 
     paInstanceBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, paInstanceBuffer);
@@ -126,7 +131,7 @@ function renderParticles(partEmtrs, camera, deltaTime){
     gl.bindVertexArray(paVao);
     for(let i = 0; i < partEmtrs.length; i++){
         let part = partEmtrs[i];
-        part.updateFunction(part, deltaTime);
+        
         gl.bindTexture(gl.TEXTURE_2D, part.textureID);
         let instMats = [];
   
@@ -140,11 +145,20 @@ function renderParticles(partEmtrs, camera, deltaTime){
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(instMats), gl.DYNAMIC_DRAW);
         
         gl.uniformMatrix4fv(paCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
-        gl.uniform3fv(paCameraPositionID, camera.position.toArray());
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, part.positions.length);
+    }
+}
 
+function updateParticles(partEmtrs, deltaTime){
+    for(let i = 0; i < partEmtrs.length; i++){
+        let part = partEmtrs[i];
         if(part.discard){
+            part.discard = false;
+            part.totalTime = 0;
             partEmtrs.splice(i, 1);
+            continue;
         }
+        part.totalTime += deltaTime;
+        part.updateFunction(part, deltaTime);
     }
 }

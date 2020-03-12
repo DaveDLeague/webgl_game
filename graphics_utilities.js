@@ -320,7 +320,7 @@ class Quaternion {
         m.m[7] = 0;
         m.m[8] = ((2 * this.x * this.z) + (2 * this.y * this.w));
         m.m[9] = ((2 * this.y  * this.z) - (2 * this.x * this.w));
-        m.m[10] = (1 - (2 * this.x * this.x) - (2 * (this.y *  this.y)));
+        m.m[10] = (1 - (2 * this.x * this.x) - (2 * (this.y  *  this.y)));
         m.m[11] = 0; m.m[12] = 0; m.m[13] = 0; m.m[14] = 0; m.m[15] = 1;
         return m;
     }
@@ -560,6 +560,7 @@ class Camera {
             right.z, up.z, -fwd.z, 0,
             x, y, z, 1
         ];
+        
         this.position = new Vector3(x, -z, -y);
         this.viewMatrix.getForwardVector(this.forward);
         this.viewMatrix.getUpVector(this.up);

@@ -110,6 +110,7 @@ function renderTexturedMeshes(meshes, camera, lightPosition){
     gl.useProgram(tmShader);
     gl.bindVertexArray(tmVao);
     gl.uniform3fv(tmLightPositionID, lightPosition.toArray());
+    gl.enable(gl.CULL_FACE);
     for(let i = 0; i < meshes.length; i++){
         let mesh = meshes[i];
         gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
