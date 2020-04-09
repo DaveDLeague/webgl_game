@@ -2,6 +2,7 @@ class AnimatedTexturedMesh{
     constructor(){
         this.position = new Vector3();
         this.scale = new Vector3(1, 1, 1);
+        this.color = new Vector4(1, 1, 1, 1);
         this.orientation = new Quaternion();
         this.totalIndices = 0;
         this.indexOffset = 0;
@@ -48,6 +49,7 @@ var atmBoneMatricesID;
 var atmCameraViewMatrixID;
 var atmModelViewMatrixID;
 var atmLightPositionID;
+var atmColorMultID;
 
 var atmIndexBufferSize;
 var atmVertexBufferSize;
@@ -89,6 +91,7 @@ function initAnimatedTexturedMeshRenderer(){
     in vec3 fragPos;\n\
     uniform vec3 lightPosition;\n\
     uniform sampler2D tex;\n\
+    uniform vec4 colorMult;\n\
     out vec4 finalColor;\n\
     void main(){\
         float ambient = 0.2;\
@@ -96,7 +99,7 @@ function initAnimatedTexturedMeshRenderer(){
         float diff = max(dot(norm, lightDir), ambient);\
         vec4 texCol = texture(tex, uv);\
         vec4 finCol = texCol * vec4(diff, diff, diff, 1);\
-        finalColor = finCol;\
+        finalColor = colorMult * finCol;\
     }";
 
     atmShader = compileGLShader(gl, atmVertShader, atmFragShader);
@@ -111,6 +114,7 @@ function initAnimatedTexturedMeshRenderer(){
     atmCameraViewMatrixID = gl.getUniformLocation(atmShader, "cameraViewMatrix");
     atmLightPositionID = gl.getUniformLocation(atmShader, "lightPosition");
     atmBoneMatricesID = gl.getUniformLocation(atmShader, "boneMatrices");
+    atmColorMultID = gl.getUniformLocation(atmShader, "colorMult");
 
     atmVao = gl.createVertexArray();
     gl.bindVertexArray(atmVao);
@@ -174,8 +178,9 @@ function renderAnimatedTexturedMeshes(meshes, camera, lightPosition, deltaTime){
             }
         }
         gl.uniformMatrix4fv(atmBoneMatricesID, gl.TRUE, new Float32Array(matz));
-
+        
         let mesh = meshes[i];
+        gl.uniform4fv(atmColorMultID, mesh.color.toArray());
         gl.bindTexture(gl.TEXTURE_2D, mesh.textureID);
         gl.uniformMatrix4fv(atmCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
         gl.drawElements(gl.TRIANGLES, mesh.totalIndices, gl.UNSIGNED_INT, mesh.indexOffset);
