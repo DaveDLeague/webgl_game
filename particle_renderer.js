@@ -12,6 +12,7 @@ class ParticleEmitter{
         this.updateFunction;
         this.repeat = false;
         this.discard = false;
+        this.color = new Vector4(1, 1, 1, 1);
     }
 }
 
@@ -24,6 +25,7 @@ var paPositionID;
 var paNormalID;
 var paUvID;
 var paInstanceMatrixID;
+var paColorMultID;
 
 var paCameraViewMatrixID;
 
@@ -58,9 +60,10 @@ function initParticleRenderer(){
     in vec3 fragPos;\n\
     uniform sampler2D tex;\n\
     uniform vec3 lightPosition;\n\
+    uniform vec4 colorMult;\n\
     out vec4 finalColor;\n\
     void main(){\
-        finalColor = texture(tex, uv);\
+        finalColor = colorMult * texture(tex, uv);\
     }";
 
     paShader = compileGLShader(gl, paVertShader, paFragShader);
@@ -72,6 +75,7 @@ function initParticleRenderer(){
     paInstanceMatrixID = gl.getAttribLocation(paShader, "instanceMatrix");
 
     paCameraViewMatrixID = gl.getUniformLocation(paShader, "cameraViewMatrix");
+    paColorMultID = gl.getUniformLocation(paShader, "colorMult");
 
     paVao = gl.createVertexArray();
     gl.bindVertexArray(paVao);
@@ -143,7 +147,7 @@ function renderParticles(partEmtrs, camera, deltaTime){
         }
         gl.bindBuffer(gl.ARRAY_BUFFER, paInstanceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(instMats), gl.DYNAMIC_DRAW);
-        
+        gl.uniform4fv(paColorMultID, part.color.toArray());
         gl.uniformMatrix4fv(paCameraViewMatrixID, gl.FALSE, camera.viewMatrix.m);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, part.positions.length);
     }
