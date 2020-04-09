@@ -272,11 +272,13 @@ window.onload = function(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
+
+    //Temp Title Screen
     textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
     textCtx.font = "100px Arial";
     textCtx.fillText("BATTLE OF THE BOO-LEANS!!", 100, 100);
     textCtx.font = "50px Arial";
-    textCtx.fillText("Click TRUE of FALSE to begin", 200, 200);
+    textCtx.fillText("Click TRUE or FALSE to begin", 200, 200);
     textCtx.font = "30px Arial";
     textCtx.fillText("(place holder)", 300, 300);
 
