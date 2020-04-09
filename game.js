@@ -52,6 +52,7 @@ var ghostStartPos;
 var ghostRelocatePos;
 var ghostMesh;
 
+var gameStarted = false;
 var transitionToNextGhost = false;
 var ghostSwoop = false;
 var ghostShrink = false;
@@ -140,12 +141,11 @@ window.onload = function(){
         for(let j = 0; j < 16; j++){
             let x = 8 - i;
             let y = 8 - j;
-            ghostParticleTex.push(0);
-            ghostParticleTex.push(0);
-            ghostParticleTex.push(0);
-            console.log(Math.sqrt(x * x + y * y));
+            ghostParticleTex.push(1);
+            ghostParticleTex.push(1);
+            ghostParticleTex.push(1);
             if(Math.sqrt(x * x + y * y) < 8){
-                ghostParticleTex.push(Math.random() * 25);
+                ghostParticleTex.push(Math.random() * 128);
             }else{
                 ghostParticleTex.push(0);
             }
@@ -258,6 +258,7 @@ window.onload = function(){
 
     particleEmitters.push(ghostParticleEmitter);
     ghostParticleEmitter =  particleEmitters[particleEmitters.length - 1];
+    ghostParticleEmitter.color = new Vector4(ghostMesh.color.x, ghostMesh.color.y, ghostMesh.color.x, ghostMesh.color.w);
 
     /////////////////////////////////////////PARTICLES///////////////////////////////////////////////////
     currentLevel = 1;
@@ -271,8 +272,16 @@ window.onload = function(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    startTime = new Date().getTime();
-    interval = setInterval(updateScreen, 0);
+    textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+    textCtx.font = "100px Arial";
+    textCtx.fillText("BATTLE OF THE BOO-LEANS!!", 100, 100);
+    textCtx.font = "50px Arial";
+    textCtx.fillText("Click TRUE of FALSE to begin", 200, 200);
+    textCtx.font = "30px Arial";
+    textCtx.fillText("(place holder)", 300, 300);
+
+    //startTime = new Date().getTime();
+    //interval = setInterval(updateScreen, 0);
 }
 
 function updateScreen(){
@@ -282,6 +291,7 @@ function updateScreen(){
             if(ghostMesh.scale.x < 0.05){
                 ghostMesh.scale = new Vector3(Math.random() + 0.5, Math.random() + 0.5, Math.random() + 0.5);
                 ghostMesh.color = generateRandomGhostColor();
+                ghostParticleEmitter.color = new Vector4(ghostMesh.color.x, ghostMesh.color.y, ghostMesh.color.x, ghostMesh.color.w);
                 ghostRelocatePos = new Vector3(Math.random() * 30, Math.random() * 30, 0);
                 if(Math.random() > 0.5){
                     ghostRelocatePos.x = -ghostRelocatePos.x; 
@@ -592,8 +602,8 @@ function getRandomRelationalOperator(){
     return OPS_STR[Math.floor(Math.random() * TOTAL_OPS)];
 }
 
-function trueButtonClicked(){
-    if(currentQuestion.answer){
+function checkAnswer(actual, correct){
+    if(actual == correct){
         currentLevel++;
         particleEmitters.push(hitParticleEmitter);
         transitionToNextGhost = true;
@@ -606,18 +616,24 @@ function trueButtonClicked(){
     currentQuestion = generateQuestion(currentLevel);
 }
 
-function falseButtonClicked(){
-    if(!currentQuestion.answer){
-        currentLevel++;
-        particleEmitters.push(hitParticleEmitter);
-        transitionToNextGhost = true;
-        ghostShrink = true;
-        trueButton.disabled = true;
-        falseButton.disabled = true;
+function trueButtonClicked(){
+    if(gameStarted){
+        checkAnswer(true, currentQuestion.answer);
     }else{
-        currentLevel = 1;
+        gameStarted = true;
+        startTime = new Date().getTime();
+        interval = setInterval(updateScreen, 0);
     }
-    currentQuestion = generateQuestion(currentLevel);
+}
+
+function falseButtonClicked(){
+    if(gameStarted){
+        checkAnswer(false, currentQuestion.answer);
+    }else{
+        gameStarted = true;
+        startTime = new Date().getTime();
+        interval = setInterval(updateScreen, 0);
+    }
 }
 
 function generateRandomGhostColor(){
