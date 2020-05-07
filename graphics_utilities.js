@@ -4,9 +4,8 @@ class Vector2 {
         this.y = y;
     }
 
-    static add(v1, v2, vres){
-        vres.x = v1.x + v2.x;
-        vres.y = v1.y + v2.y;
+    static add(v1, v2){
+        return new Vector2(v1.x + v2.x, v1.y + v2.y);
     }
 
     length(){
@@ -458,6 +457,7 @@ class Camera {
 
         this.moveSpeed = 1;
         this.rotateSpeed = 1;
+        this.mouseSensitivity = 0.5;
     }
 
     setOrthographicProjection(left, right, bottom, top, near, far){
@@ -492,43 +492,6 @@ class Camera {
     }
 
     updateView(delta){
-        if(this.moveForward){
-            this.position.add(Vector3.scale(this.forward, delta * this.moveSpeed));
-        }
-        if(this.moveBack){
-            this.position.add(Vector3.scale(this.forward, -delta * this.moveSpeed));
-        }
-        if(this.moveLeft){
-            this.position.add(Vector3.scale(this.right, -delta * this.moveSpeed));
-        }
-        if(this.moveRight ){
-            this.position.add(Vector3.scale(this.right, delta * this.moveSpeed));
-        }
-        if(this.moveUp){
-            this.position.add(Vector3.scale(this.up, delta * this.moveSpeed));
-        }
-        if(this.moveDown){
-            this.position.add(Vector3.scale(this.up, -delta * this.moveSpeed));
-        }
-        if(this.pitchUp){
-            this.orientation.rotate(this.right, -delta * this.rotateSpeed);
-        }
-        if(this.pitchDown){
-            this.orientation.rotate(this.right, delta * this.rotateSpeed);
-        }
-        if(this.rollLeft){
-            this.orientation.rotate(this.forward, delta * this.rotateSpeed);
-        }
-        if(this.rollRight){
-            this.orientation.rotate(this.forward, -delta * this.rotateSpeed);
-        }
-        if(this.yawLeft){
-            this.orientation.rotate(this.up, -delta * this.rotateSpeed);
-        }
-        if(this.yawRight){
-            this.orientation.rotate(this.up, delta * this.rotateSpeed);
-        }
-        
         this.viewMatrix.setIdentity();
         this.viewMatrix.translate(new Vector3(-this.position.x, -this.position.y, -this.position.z));
         this.viewMatrix = Matrix4.multiply(this.orientation.toMatrix4(), this.viewMatrix);
