@@ -58,6 +58,12 @@ var ghostSwoop = false;
 var ghostShrink = false;
 var swoopTime = 0;
 
+var terrainMesh;
+
+var mousePosition = new Vector2();
+var lastMoustPosition = new Vector2();
+var mouseDelta = new Vector2(0, 0);
+
 window.onload = function(){
     buttonDiv = document.getElementById("buttonDivID");
     canvas = document.getElementById("canvasID");
@@ -65,13 +71,28 @@ window.onload = function(){
     textCtx = textCanvas.getContext("2d");
 
     window.addEventListener("resize", windowResize);
+    window.addEventListener("mousedown", mousePressed);
+    window.addEventListener("mousemove", mouseMoved);
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
 
     buttonDiv.style.position = 'absolute';
     canvas.style.position = 'absolute';
     canvas.style.border = 'solid';
+    canvas.style.cursor = 'none';
     textCanvas.style.position = 'absolute';
+    textCanvas.style.cursor = 'none';
+
+    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+
+
+    if(document.pointerLockElement === textCanvas ||
+    document.mozPointerLockElement === textCanvas) {
+        console.log('The pointer lock status is now locked');
+    }
+
+    canvas.requestPointerLock;
+    textCanvas.requestPointerLock;
 
     trueButton = document.createElement('button');
     trueButton.onclick = trueButtonClicked;
@@ -102,7 +123,7 @@ window.onload = function(){
     gameCamera = new Camera();
 
     gameCamera.setPerspectiveProjection(70.0, canvas.width / canvas.height, 0.001, 1000.0);
-    gameCamera.position = new Vector3(0, 1, 10);
+    gameCamera.position = new Vector3(0, 5, 10);
     gameCamera.moveSpeed = 10;
     gameCamera.updateView();
 
@@ -121,19 +142,21 @@ window.onload = function(){
 
     let msh = createTexturedMesh(terrainMeshData[0], terrainMeshData[1]);
     msh.textureID = generateGLTexture2D(terrainTextureData, 1024, 1024, "linear");
-    ghostStartPos = new Vector3(0, 0, 0);
-    msh.position = new Vector3(ghostStartPos.x, ghostStartPos.y, ghostStartPos.z);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.position = new Vector3(0, 0, 0);
     staticMeshes.push(msh);
 
+    ghostStartPos = new Vector3(0, 5, 0);
     msh = createAnimatedTexturedMesh(boo_leanMeshData[0], boo_leanMeshData[1]);
     msh.textureID = generateGLTexture2D(boo_leanTextureData, 1024, 1024, "linear");
+    msh.position = new Vector3(ghostStartPos.x, ghostStartPos.y, ghostStartPos.z);
     msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
     msh.animations["idle"] = buildAnimation(boo_leanAnimation["idle"]);
     msh.currentAnimation = msh.animations["idle"];
     msh.color = generateRandomGhostColor();
     animatedMeshes.push(msh);
     ghostMesh = animatedMeshes[animatedMeshes.length - 1];
+
+    
 
     /////////////////////////////////////////PARTICLES///////////////////////////////////////////////////
     let ghostParticleTex = [];
@@ -272,13 +295,12 @@ window.onload = function(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-
     //Temp Title Screen
     textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
     textCtx.font = "100px Arial";
     textCtx.fillText("BATTLE OF THE BOO-LEANS!!", 100, 100);
     textCtx.font = "50px Arial";
-    textCtx.fillText("Click TRUE or FALSE to begin", 200, 200);
+    textCtx.fillText("Click Anywhere To Begin", 200, 200);
     textCtx.font = "30px Arial";
     textCtx.fillText("(place holder)", 300, 300);
 
@@ -320,8 +342,47 @@ function updateScreen(){
     }
 
     ghostParticleEmitter.position = new Vector3(ghostMesh.position.x,ghostMesh.position.y, ghostMesh.position.z);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
+
+    if(gameCamera.moveForward){
+        let dir = new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z);
+        gameCamera.position.add(Vector3.scale(dir, deltaTime * gameCamera.moveSpeed));
+    }
+    if(gameCamera.moveBack){
+        let dir = new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z);
+        gameCamera.position.add(Vector3.scale(dir, -deltaTime * gameCamera.moveSpeed));
+    }
+    if(gameCamera.moveLeft){
+        let dir = new Vector3(gameCamera.right.x, 0, gameCamera.right.z);
+        gameCamera.position.add(Vector3.scale(dir, -deltaTime * gameCamera.moveSpeed));
+    }
+    if(gameCamera.moveRight){
+        let dir = new Vector3(gameCamera.right.x, 0, gameCamera.right.z);
+        gameCamera.position.add(Vector3.scale(dir, deltaTime * gameCamera.moveSpeed));
+    }
+    if(gameCamera.moveUp){
+        gameCamera.position.add(Vector3.scale(gameCamera.up, deltaTime * gameCamera.moveSpeed));
+    }
+    if(gameCamera.moveDown){
+        gameCamera.position.add(Vector3.scale(gameCamera.up, -deltaTime * gameCamera.moveSpeed));
+    }
+    if(gameCamera.pitchUp){
+        //gameCamera.orientation.rotate(gameCamera.right, -deltaTime * gameCamera.rotateSpeed);
+    }
+    if(gameCamera.pitchDown){
+        //gameCamera.orientation.rotate(gameCamera.right, deltaTime * gameCamera.rotateSpeed);
+    }
+    if(gameCamera.rollLeft){
+        //gameCamera.orientation.rotate(gameCamera.forward, deltaTime * gameCamera.rotateSpeed);
+    }
+    if(gameCamera.rollRight){
+        //gameCamera.orientation.rotate(gameCamera.forward, -deltaTime * gameCamera.rotateSpeed);
+    }
+    if(gameCamera.yawLeft){
+        //gameCamera.orientation.rotate(gameCamera.up, -deltaTime * gameCamera.rotateSpeed);
+    }
+    if(gameCamera.yawRight){
+        //gameCamera.orientation.rotate(gameCamera.up, delta * gameCamera.rotateSpeed);
+    }
 
     gameCamera.updateView(deltaTime);
 
@@ -330,8 +391,11 @@ function updateScreen(){
         updateAnimations(animatedMeshes, deltaTime);
     }
 
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+
     renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
-    //renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
+    renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
     renderAnimatedTexturedMeshes(animatedMeshes, gameCamera, gameLight, deltaTime);
     renderParticles(particleEmitters, gameCamera, deltaTime);
 
@@ -664,11 +728,11 @@ function keyUp(event){
             break;
         }
         case KEY_R:{
-            gameCamera.moveUp = false;
+            //gameCamera.moveUp = false;
             break;
         }
         case KEY_F:{
-            gameCamera.moveDown = false;
+            //gameCamera.moveDown = false;
             break;
         }
         case KEY_UP:{
@@ -717,11 +781,11 @@ function keyDown(event){
             break;
         }
         case KEY_R:{
-            gameCamera.moveUp = true;
+            //gameCamera.moveUp = true;
             break;
         }
         case KEY_F:{
-            gameCamera.moveDown = true;
+            //gameCamera.moveDown = true;
             break;
         }
         case KEY_UP:{
@@ -755,4 +819,23 @@ function keyDown(event){
             paused = !paused;
         }
     }
+}
+
+function mousePressed(event){
+    if(!gameStarted){
+        gameStarted = true;
+        startTime = new Date().getTime();
+        interval = setInterval(updateScreen, 0);
+        canvas.requestPointerLock();
+    }
+}
+
+function mouseMoved(event){
+    mousePosition = Vector2.add(mousePosition, new Vector2(event.movementX, event.movementY));
+    mouseDelta = new Vector2(mousePosition.x - lastMoustPosition.x, mousePosition.y - lastMoustPosition.y);
+    lastMoustPosition = new Vector2(mousePosition.x, mousePosition.y);
+    let nr = new Vector3(gameCamera.right.x, 0, gameCamera.right.z);
+    nr.normalize();
+    gameCamera.orientation.rotate(new Vector3(0, 1, 0), deltaTime * gameCamera.rotateSpeed * mouseDelta.x * gameCamera.mouseSensitivity);
+    gameCamera.orientation.rotate(nr, deltaTime * gameCamera.rotateSpeed * mouseDelta.y * gameCamera.mouseSensitivity);
 }
