@@ -836,6 +836,8 @@ function mouseMoved(event){
     lastMoustPosition = new Vector2(mousePosition.x, mousePosition.y);
     let nr = new Vector3(gameCamera.right.x, 0, gameCamera.right.z);
     nr.normalize();
-    gameCamera.orientation.rotate(new Vector3(0, 1, 0), deltaTime * gameCamera.rotateSpeed * mouseDelta.x * gameCamera.mouseSensitivity);
+
+    gameCamera.orientation.rotate(gameCamera.forward, Vector3.dot(nr, gameCamera.up));
     gameCamera.orientation.rotate(nr, deltaTime * gameCamera.rotateSpeed * mouseDelta.y * gameCamera.mouseSensitivity);
+    gameCamera.orientation.rotate(new Vector3(0, 1, 0), deltaTime * gameCamera.rotateSpeed * mouseDelta.x * gameCamera.mouseSensitivity);
 }
