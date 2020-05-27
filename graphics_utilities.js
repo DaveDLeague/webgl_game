@@ -8,8 +8,25 @@ class Vector2 {
         return new Vector2(v1.x + v2.x, v1.y + v2.y);
     }
 
+    static sub(v1, v2){
+        return new Vector2(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    static scale(v, amt){
+        return new Vector3(v.x * amt, v.y * amt);
+    }
+
+    static length(v){
+        return Math.sqrt(v.x * v.x + v.y * v.y);
+    }
+
     length(){
         return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    add(v1){
+        this.x += v1.x;
+        this.y += v1.y;
     }
 
     normalize(){
@@ -217,7 +234,7 @@ class Quaternion {
     }
 
     static rotationToQuaternion(axis, angle){
-        let hang = angle / 2.0;
+        let hang = angle * 0.5;
         let sinHang = Math.sin(hang);
         let q = new Quaternion(axis.x * sinHang, axis.y * sinHang, axis.z * sinHang, Math.cos(hang));
         q.normalize();
@@ -300,10 +317,14 @@ class Quaternion {
     }
 
     multiply(q2){
-        this.x =   this.x * q2.w + this.y * q2.z - this.z * q2.y + this.w * q2.x;
-        this.y =  -this.x * q2.z + this.y * q2.w + this.z * q2.x + this.w * q2.y;
-        this.z =   this.x * q2.y - this.y * q2.x + this.z * q2.w + this.w * q2.z;
-        this.w =  -this.x * q2.x - this.y * q2.y - this.z * q2.z + this.w * q2.w;
+        let x =   this.x * q2.w + this.y * q2.z - this.z * q2.y + this.w * q2.x;
+        let y =  -this.x * q2.z + this.y * q2.w + this.z * q2.x + this.w * q2.y;
+        let z =   this.x * q2.y - this.y * q2.x + this.z * q2.w + this.w * q2.z;
+        let w =  -this.x * q2.x - this.y * q2.y - this.z * q2.z + this.w * q2.w;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     toMatrix4(){
@@ -363,10 +384,11 @@ class Matrix4 {
 
     static buildModelMatrix4(position, scale, orientation){
         let m = orientation.toMatrix4();
-        m.translate(position);
-        m.scale(scale);
+        let m2 = new Matrix4(1);
+        m2.translate(position);
+        m2.scale(scale);
         
-        return m;
+        return Matrix4.multiply(m2, m);
     }
 
     static fromArray(arr){
