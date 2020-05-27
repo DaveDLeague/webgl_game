@@ -409,6 +409,10 @@ function updateScreen(){
             break;
         }
         case GAME_MODE_ROAM :{
+            let ss = Vector3.sub(staticMeshes[0].position, gameCamera.position);
+            let dd = Vector3.dot(new Vector3(0, 0, 1), Vector3.normal(new Vector3(ss.x, 0, ss.z))) * 2;
+            textCtx.font = "50px Arial";
+            textCtx.fillText("" + dd, 200, 200);
             playerVelocity = new Vector2(0, 0);
             if(gameCamera.moveForward){
                 playerVelocity.add(new Vector2(gameCamera.forward.x, gameCamera.forward.z));
@@ -616,12 +620,16 @@ function checkForGhostArrival(){
         let len = Vector3.length(Vector3.sub(pos, spos));
         if(len < 7){
             ghostMesh.orientation = new Quaternion();
-            let vv = Vector3.normal(new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z));
-            let dd = Vector3.dot(new Vector3(1, 0, 0), vv);
-            ghostMesh.orientation.rotate(new Vector3(0, 1, 0), dd * -Math.PI * 0.5);
+            let ss = Vector3.sub(pos, gameCamera.position);
+            let dd = (Vector3.dot(new Vector3(0, 0, 1), Vector3.normal(new Vector3(ss.x, 0, ss.z))) + 1) * 0.5;
+            if(gameCamera.position.x > pos.x){
+                ghostMesh.orientation.rotate(new Vector3(0, 1, 0), dd * Math.PI);
+            }else{
+                ghostMesh.orientation.rotate(new Vector3(0, 1, 0), dd * -Math.PI);
+            }
             
             ghostMesh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
-            
+    
             ghostMesh.color = generateRandomGhostColor();
             ghostMesh.position = new Vector3(pos.x, pos.y, pos.z);
             ghostMesh.position.y -= 3;
