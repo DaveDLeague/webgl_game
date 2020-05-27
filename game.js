@@ -189,7 +189,7 @@ window.onload = function(){
 
     msh = createTexturedMesh(blenderMeshData[0], blenderMeshData[1]);
     msh.textureID = generateGLTexture2D(blenderTextureData, 1, 1, "linear");
-    msh.position = new Vector3(35, 2, 0);
+    msh.position = new Vector3(35, 2.5, 0);
     msh.scale = new Vector3(0.5, 0.5, 0.5);
     msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
