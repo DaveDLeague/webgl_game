@@ -12,12 +12,21 @@ class Vector2 {
         return new Vector2(v1.x - v2.x, v1.y - v2.y);
     }
 
+    static scale(v, amt){
+        return new Vector3(v.x * amt, v.y * amt);
+    }
+
     static length(v){
         return Math.sqrt(v.x * v.x + v.y * v.y);
     }
 
     length(){
         return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    add(v1){
+        this.x += v1.x;
+        this.y += v1.y;
     }
 
     normalize(){

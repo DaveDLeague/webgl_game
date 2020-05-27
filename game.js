@@ -396,36 +396,47 @@ function updateScreen(){
             textCtx.font = "100px Arial";
             textCtx.fillText("Hunt down all of the BOO-LEANS!!", 100, 100);
             textCtx.font = "50px Arial";
-            textCtx.fillText("Use WASD to move and the mouse to look around.", 200, 200);
+            textCtx.fillText("Use WASD to move and the MOUSE or ARROW KEYS to look around.", 200, 200);
             textCtx.fillText("When facing an object, CLICK or press SPACE to reveal a ghost.", 200, 300);
-            textCtx.fillText("Answer all of its questions correctly to vanish it.", 200, 400);
-            textCtx.fillText("Click Anywhere To Begin", 200, 500);
+            textCtx.fillText("Click the button or use T or F to anwer the true and false question.", 200, 400);
+            textCtx.fillText("Answer all of the questions correctly to vanish the ghost.", 200, 500);
+            textCtx.fillText("Click Anywhere or press SPACE To begin.", 200, 600);
             textCtx.font = "30px Arial";
-            textCtx.fillText("(place holder)", 300, 600);
+            textCtx.fillText("(place holder)", 300, 700);
+            if(spacePressed()){
+                mousePressed(null);
+            }
             break;
         }
         case GAME_MODE_ROAM :{
+            playerVelocity = new Vector2(0, 0);
             if(gameCamera.moveForward){
-                let dir = new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z);
-                gameCamera.position.add(Vector3.scale(dir, deltaTime * gameCamera.moveSpeed));
+                playerVelocity.add(new Vector2(gameCamera.forward.x, gameCamera.forward.z));
             }
             if(gameCamera.moveBack){
-                let dir = new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z);
-                gameCamera.position.add(Vector3.scale(dir, -deltaTime * gameCamera.moveSpeed));
+                playerVelocity.add(new Vector2(-gameCamera.forward.x, -gameCamera.forward.z));
             }
             if(gameCamera.moveLeft){
-                let dir = new Vector3(gameCamera.right.x, 0, gameCamera.right.z);
-                gameCamera.position.add(Vector3.scale(dir, -deltaTime * gameCamera.moveSpeed));
+                playerVelocity.add(new Vector2(-gameCamera.right.x, -gameCamera.right.z));
             }
             if(gameCamera.moveRight){
-                let dir = new Vector3(gameCamera.right.x, 0, gameCamera.right.z);
-                gameCamera.position.add(Vector3.scale(dir, deltaTime * gameCamera.moveSpeed));
+                playerVelocity.add(new Vector2(gameCamera.right.x, gameCamera.right.z));
             }
-            if(gameCamera.moveUp){
-                gameCamera.position.add(Vector3.scale(gameCamera.up, deltaTime * gameCamera.moveSpeed));
+            if(gameCamera.pitchUp){
+                gameCamera.orientation.rotate(gameCamera.right, -deltaTime * gameCamera.rotateSpeed);
             }
-            if(gameCamera.moveDown){
-                gameCamera.position.add(Vector3.scale(gameCamera.up, -deltaTime * gameCamera.moveSpeed));
+            if(gameCamera.pitchDown){
+                gameCamera.orientation.rotate(gameCamera.right, deltaTime * gameCamera.rotateSpeed);
+            }
+            if(gameCamera.yawLeft){
+                gameCamera.orientation.rotate(new Vector3(0, 1, 0), -deltaTime * gameCamera.rotateSpeed);
+            }
+            if(gameCamera.yawRight){
+                gameCamera.orientation.rotate(new Vector3(0, 1, 0), deltaTime * gameCamera.rotateSpeed);
+            }
+
+            if(gameCamera.pitchUp){
+                gameCamera.rot
             }
             handleCollisions();
             if(spacePressed()){
@@ -495,6 +506,8 @@ function updateScreen(){
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
             renderCanvasItems();
+            setGhostHealth();
+            currentGameMode = GAME_MODE_QUESTION_ANSWER;
             break;
         }
         case GAME_MODE_QUESTION_RIGHT :{
@@ -539,8 +552,11 @@ function updateScreen(){
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
             renderTexturedMeshes([terrainMesh], gameCamera, gameLight);
             renderCanvasItems();
-            textCtx.font = "100px Arial";
-            textCtx.fillText("Click Anywhere to Continue", 300, 100);
+            textCtx.font = "50px Arial";
+            textCtx.fillText("Click anywhere or press SPACE to continue", 425, 50);
+            if(spacePressed()){
+                mousePressed(null);
+            }
             break;
         }
     }
@@ -555,6 +571,7 @@ function renderCanvasItems(){
 }
 
 function handleCollisions(){
+    let npos = Vector2.add(new Vector2(gameCamera.position.x, gameCamera.position.z), Vector2.scale(playerVelocity, deltaTime * gameCamera.moveSpeed));
     for(let i = 0; i < staticMeshes.length; i++){
         let hsx = 5;
         let hsz = 5;
@@ -562,25 +579,31 @@ function handleCollisions(){
         let xmax = staticMeshes[i].position.x + hsx;
         let zmin = staticMeshes[i].position.z - hsz;
         let zmax = staticMeshes[i].position.z + hsz;
-        if(gameCamera.position.x < xmin || gameCamera.position.x > xmax
-        || gameCamera.position.z < zmin || gameCamera.position.z > zmax){
+        if(npos.x < xmin || npos.x > xmax
+        || npos.y < zmin || npos.y > zmax){
             continue;
         }else{
-            if(gameCamera.position.x > xmin && gameCamera.position.x < staticMeshes[i].position.x){
-                gameCamera.position.x = xmin;
+            if(playerVelocity.x > 0 && gameCamera.position.x < xmin){
+                playerVelocity.x = 0;
+                npos.x = xmin - 0.01;
             }
-            else if(gameCamera.position.x < xmax && gameCamera.position.x > staticMeshes[i].position.x){
-                gameCamera.position.x = xmax;
+            else if(playerVelocity.x < 0 && gameCamera.position.x > xmax){
+                playerVelocity.x = 0;
+                npos.x = xmax + 0.01;
             }
-            if(gameCamera.position.z > zmin && gameCamera.position.z < staticMeshes[i].position.z){
-                gameCamera.position.z = zmin;
+            if(playerVelocity.y > 0 && gameCamera.position.z < zmin){
+                playerVelocity.y = 0;
+                npos.y = zmin - 0.01;
             }
-            else if(gameCamera.position.z < zmax && gameCamera.position.z > staticMeshes[i].position.z){
-                gameCamera.position.z = zmax;
+            else if(playerVelocity.y < 0 && gameCamera.position.z > zmax){
+                playerVelocity.y = 0;
+                npos.y = zmax + 0.01;
             }
             break;
         } 
     }
+    gameCamera.position.x = npos.x;
+    gameCamera.position.z = npos.y;
 }
 
 function checkForGhostArrival(){
@@ -1001,8 +1024,16 @@ function keyDown(event){
             //gameCamera.moveUp = true;
             break;
         }
+        case KEY_T:{
+            if(currentGameMode == GAME_MODE_QUESTION_ANSWER){
+                checkAnswer(true, currentQuestion.answer)
+            }
+            break;
+        }
         case KEY_F:{
-            //gameCamera.moveDown = true;
+            if(currentGameMode == GAME_MODE_QUESTION_ANSWER){
+                checkAnswer(false, currentQuestion.answer)
+            }
             break;
         }
         case KEY_UP:{
@@ -1072,5 +1103,5 @@ function mouseMoved(event){
 }
 
 function setGhostHealth(){
-    ghostHealth = 1;//ghostsKilled + 1;
+    ghostHealth = ghostsKilled + 1;
 }

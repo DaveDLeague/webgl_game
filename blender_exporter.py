@@ -1,6 +1,9 @@
 import bpy
 from os import system, name
 
+varName = "desk"
+texColor = [128, 128, 128, 255]
+
 vertexList = []
 indexList = []
 obj = bpy.context.active_object
@@ -61,18 +64,14 @@ for v in vertexList:
     for u in v[2]:
         nvList.append(u)
 
-texturePixels = []
-for p in bpy.data.images['monkey.png'].pixels:
-    texturePixels.append(int(p * 255))
 
-
-fileText = "var monkeyMeshData = ["
+fileText = "var " + varName + "MeshData = ["
 fileText += str(nvList) + ","
 fileText += str(indexList) + "];\n"
 
-fileText += "var monkeyTextureData = " + str(texturePixels) + ";"
+fileText += "var " + varName + "TextureData = " + str(texColor) + ";"
             
-file = open('C:/Users/Dave/Desktop/monkeyData.js', 'w')
+file = open('C:/Users/Dave/Desktop/' + varName + 'Data.js', 'w')
 file.write(fileText);
 file.close()
 
