@@ -398,7 +398,7 @@ function updateScreen(){
             textCtx.font = "50px Arial";
             textCtx.fillText("Use WASD to move and the MOUSE or ARROW KEYS to look around.", 200, 200);
             textCtx.fillText("When facing an object, CLICK or press SPACE to reveal a ghost.", 200, 300);
-            textCtx.fillText("Click the button or use T or F to anwer the true and false question.", 200, 400);
+            textCtx.fillText("Click the button or use T or F to anwer the true or false question.", 200, 400);
             textCtx.fillText("Answer all of the questions correctly to vanish the ghost.", 200, 500);
             textCtx.fillText("Click Anywhere or press SPACE To begin.", 200, 600);
             textCtx.font = "30px Arial";
@@ -409,10 +409,6 @@ function updateScreen(){
             break;
         }
         case GAME_MODE_ROAM :{
-            let ss = Vector3.sub(staticMeshes[0].position, gameCamera.position);
-            let dd = Vector3.dot(new Vector3(0, 0, 1), Vector3.normal(new Vector3(ss.x, 0, ss.z))) * 2;
-            textCtx.font = "50px Arial";
-            textCtx.fillText("" + dd, 200, 200);
             playerVelocity = new Vector2(0, 0);
             if(gameCamera.moveForward){
                 playerVelocity.add(new Vector2(gameCamera.forward.x, gameCamera.forward.z));
