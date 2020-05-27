@@ -308,10 +308,14 @@ class Quaternion {
     }
 
     multiply(q2){
-        this.x =   this.x * q2.w + this.y * q2.z - this.z * q2.y + this.w * q2.x;
-        this.y =  -this.x * q2.z + this.y * q2.w + this.z * q2.x + this.w * q2.y;
-        this.z =   this.x * q2.y - this.y * q2.x + this.z * q2.w + this.w * q2.z;
-        this.w =  -this.x * q2.x - this.y * q2.y - this.z * q2.z + this.w * q2.w;
+        let x =   this.x * q2.w + this.y * q2.z - this.z * q2.y + this.w * q2.x;
+        let y =  -this.x * q2.z + this.y * q2.w + this.z * q2.x + this.w * q2.y;
+        let z =   this.x * q2.y - this.y * q2.x + this.z * q2.w + this.w * q2.z;
+        let w =  -this.x * q2.x - this.y * q2.y - this.z * q2.z + this.w * q2.w;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     toMatrix4(){

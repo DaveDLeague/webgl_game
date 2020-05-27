@@ -84,7 +84,7 @@ var cameraLockPosition;
 var spaceDown = false;
 var spaceTracker = true;
 var ghostHealth;
-var ghostTurnAngle = 0;
+var ghostsKilled = 0;
 
 window.onload = function(){
     buttonDiv = document.getElementById("buttonDivID");
@@ -129,6 +129,9 @@ window.onload = function(){
 
     windowResize();    
 
+    textCtx.font = "50px Arial";
+    textCtx.fillText("LOADING...", 100, 100);
+
     gl = canvas.getContext('webgl2');
     gl.clearColor(1, 1, 1, 1);  
     gl.enable(gl.DEPTH_TEST); 
@@ -160,63 +163,63 @@ window.onload = function(){
     msh = createTexturedMesh(trashCanMeshData[0], trashCanMeshData[1]);
     msh.textureID = generateGLTexture2D(trashCanTextureData, 1, 1, "linear");
     msh.position = new Vector3(0, 1.5, -20);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(stoolMeshData[0], stoolMeshData[1]);
     msh.textureID = generateGLTexture2D(stoolTextureData, 1, 1, "linear");
     msh.position = new Vector3(20, 1.5, -15);
     msh.scale = new Vector3(0.5, 0.5, 0.5);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(deskMeshData[0], deskMeshData[1]);
     msh.textureID = generateGLTexture2D(deskTextureData, 1, 1, "linear");
     msh.position = new Vector3(-40, 0.5, -20);
     msh.scale = new Vector3(0.5, 0.5, 0.5);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(tableMeshData[0], tableMeshData[1]);
     msh.textureID = generateGLTexture2D(tableTextureData, 1, 1, "linear");
     msh.position = new Vector3(-10, 0.5, 30);
     msh.scale = new Vector3(0.5, 0.5, 0.5);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(blenderMeshData[0], blenderMeshData[1]);
     msh.textureID = generateGLTexture2D(blenderTextureData, 1, 1, "linear");
     msh.position = new Vector3(35, 2, 0);
     msh.scale = new Vector3(0.5, 0.5, 0.5);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(hammerMeshData[0], hammerMeshData[1]);
     msh.textureID = generateGLTexture2D(hammerTextureData, 1, 1, "linear");
     msh.position = new Vector3(-15, 4.5, 0);
     msh.scale = new Vector3(0.25, 0.25, 0.25);
-    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(keyboardMeshData[0], keyboardMeshData[1]);
     msh.textureID = generateGLTexture2D(keyboardTextureData, 1, 1, "linear");
     msh.position = new Vector3(0, 1.5, 25);
     msh.scale = new Vector3(1, 1, 1);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0),-Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(mouseMeshData[0], mouseMeshData[1]);
     msh.textureID = generateGLTexture2D(mouseTextureData, 1, 1, "linear");
     msh.position = new Vector3(25, 1.5, 25);
     msh.scale = new Vector3(1, 1, 1);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     msh = createTexturedMesh(macMeshData[0], macMeshData[1]);
     msh.textureID = generateGLTexture2D(macTextureData, 1, 1, "linear");
     msh.position = new Vector3(45, 1.5, 45);
     msh.scale = new Vector3(1, 1, 1);
-    msh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     staticMeshes.push(msh);
 
     for(let i = 0; i < staticMeshes.length; i++){
@@ -232,7 +235,7 @@ window.onload = function(){
     ghostMesh = createAnimatedTexturedMesh(boo_leanMeshData[0], boo_leanMeshData[1]);
     ghostMesh.textureID = generateGLTexture2D(boo_leanTextureData, 1024, 1024, "linear");
     ghostMesh.position = new Vector3(ghostStartPos.x, ghostStartPos.y, ghostStartPos.z);
-    ghostMesh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
+    ghostMesh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
     ghostMesh.animations["idle"] = buildAnimation(boo_leanAnimation["idle"]);
     ghostMesh.currentAnimation = ghostMesh.animations["idle"];
     ghostMesh.color = generateRandomGhostColor();
@@ -394,17 +397,17 @@ function updateScreen(){
             textCtx.fillText("Hunt down all of the BOO-LEANS!!", 100, 100);
             textCtx.font = "50px Arial";
             textCtx.fillText("Use WASD to move and the mouse to look around.", 200, 200);
-            textCtx.font = "50px Arial";
-            textCtx.fillText("When facing an object, click or press SPACE to reveal a ghost.", 200, 300);
-            textCtx.font = "50px Arial";
+            textCtx.fillText("When facing an object, CLICK or press SPACE to reveal a ghost.", 200, 300);
             textCtx.fillText("Answer all of its questions correctly to vanish it.", 200, 400);
-            textCtx.font = "50px Arial";
             textCtx.fillText("Click Anywhere To Begin", 200, 500);
             textCtx.font = "30px Arial";
             textCtx.fillText("(place holder)", 300, 600);
             break;
         }
         case GAME_MODE_ROAM :{
+            textCtx.font = "50px Arial";
+            let vv = Vector3.normal(new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z));
+            textCtx.fillText("" + Vector3.dot(new Vector3(0, 0, 1), vv), 200, 200);
             if(gameCamera.moveForward){
                 let dir = new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z);
                 gameCamera.position.add(Vector3.scale(dir, deltaTime * gameCamera.moveSpeed));
@@ -592,6 +595,11 @@ function checkForGhostArrival(){
         let spos = Vector3.add(gameCamera.position, gameCamera.forward);
         let len = Vector3.length(Vector3.sub(pos, spos));
         if(len < 7){
+            ghostMesh.orientation = new Quaternion();
+            let vv = Vector3.normal(new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z));
+            ghostMesh.orientation.rotate(new Vector3(0, 1, 0), (Vector3.dot(new Vector3(0, 0, 1), vv) + 1) * -Math.PI * 0.5);
+            ghostMesh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
+            
             ghostMesh.color = generateRandomGhostColor();
             ghostMesh.position = new Vector3(pos.x, pos.y, pos.z);
             ghostMesh.position.y -= 3;
@@ -876,6 +884,7 @@ function checkAnswer(actual, correct){
         if(ghostHealth <= 0){
             buttonDiv.style.display = "none";
             windowResize();
+            ghostsKilled += 1;
             setGhostHealth();
             currentLevel = 1;
             currentGameMode = GAME_MODE_GHOST_DYING;
@@ -1064,5 +1073,5 @@ function mouseMoved(event){
 }
 
 function setGhostHealth(){
-    ghostHealth = 1;
+    ghostHealth = ghostsKilled + 1;
 }
