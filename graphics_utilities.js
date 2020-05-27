@@ -8,6 +8,14 @@ class Vector2 {
         return new Vector2(v1.x + v2.x, v1.y + v2.y);
     }
 
+    static sub(v1, v2){
+        return new Vector2(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    static length(v){
+        return Math.sqrt(v.x * v.x + v.y * v.y);
+    }
+
     length(){
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
@@ -217,7 +225,7 @@ class Quaternion {
     }
 
     static rotationToQuaternion(axis, angle){
-        let hang = angle / 2.0;
+        let hang = angle * 0.5;
         let sinHang = Math.sin(hang);
         let q = new Quaternion(axis.x * sinHang, axis.y * sinHang, axis.z * sinHang, Math.cos(hang));
         q.normalize();
@@ -363,10 +371,11 @@ class Matrix4 {
 
     static buildModelMatrix4(position, scale, orientation){
         let m = orientation.toMatrix4();
-        m.translate(position);
-        m.scale(scale);
+        let m2 = new Matrix4(1);
+        m2.translate(position);
+        m2.scale(scale);
         
-        return m;
+        return Matrix4.multiply(m2, m);
     }
 
     static fromArray(arr){
