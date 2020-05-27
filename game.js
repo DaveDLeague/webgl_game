@@ -405,9 +405,6 @@ function updateScreen(){
             break;
         }
         case GAME_MODE_ROAM :{
-            textCtx.font = "50px Arial";
-            let vv = Vector3.normal(new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z));
-            textCtx.fillText("" + Vector3.dot(new Vector3(0, 0, 1), vv), 200, 200);
             if(gameCamera.moveForward){
                 let dir = new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z);
                 gameCamera.position.add(Vector3.scale(dir, deltaTime * gameCamera.moveSpeed));
@@ -597,7 +594,9 @@ function checkForGhostArrival(){
         if(len < 7){
             ghostMesh.orientation = new Quaternion();
             let vv = Vector3.normal(new Vector3(gameCamera.forward.x, 0, gameCamera.forward.z));
-            ghostMesh.orientation.rotate(new Vector3(0, 1, 0), (Vector3.dot(new Vector3(0, 0, 1), vv) + 1) * -Math.PI * 0.5);
+            let dd = Vector3.dot(new Vector3(1, 0, 0), vv);
+            ghostMesh.orientation.rotate(new Vector3(0, 1, 0), dd * -Math.PI * 0.5);
+            
             ghostMesh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
             
             ghostMesh.color = generateRandomGhostColor();
@@ -1073,5 +1072,5 @@ function mouseMoved(event){
 }
 
 function setGhostHealth(){
-    ghostHealth = ghostsKilled + 1;
+    ghostHealth = 1;//ghostsKilled + 1;
 }
