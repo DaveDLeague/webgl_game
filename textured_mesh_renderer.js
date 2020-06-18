@@ -7,6 +7,17 @@ class TexturedMesh{
         this.indexOffset = 0;
         this.textureID = 0;
     }
+
+    static copy(tm){
+        let t = new TexturedMesh();
+        t.position = new Vector3(tm.position.x, tm.position.y, tm.position.z);
+        t.scale = new Vector3(tm.scale.x, tm.scale.y, tm.scale.z);
+        t.orientation = new Quaternion(tm.orientation.x, tm.orientation.y, tm.orientation.z, tm.orientation.w);
+        t.totalIndices = tm.totalIndices;
+        t.indexOffset = tm.indexOffset;
+        t.textureID = tm.textureID;
+        return t;
+    }
 }
 
 var tmShader;
