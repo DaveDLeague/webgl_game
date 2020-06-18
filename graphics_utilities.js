@@ -297,6 +297,12 @@ class Quaternion {
         return new Quaternion(q1.x - q2.x, q1.y - q2.y, q1.z - q2.z, q1.w - q2.w)
     }
 
+    static multiply(q1, q2){
+        let q = new Quaternion(q1.x, q1.y, q1.z, q1.w);
+        q.multiply(q2);
+        return q;
+    }
+
     length(){
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
     }
