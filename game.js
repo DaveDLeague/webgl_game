@@ -195,7 +195,7 @@ window.onload = function(){
 
     let wallColor = [225, 225, 255, 255];
     wallTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
-    wallColor = [100, 0, 0, 255];
+    wallColor = [255, 100, 100, 255];
     doorTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
 
     
@@ -205,70 +205,75 @@ window.onload = function(){
     msh.scale = new Vector3(1.25, 1.25, 1.25);
     msh.orientation.rotate(new Vector3(0, 1, 0), Math.PI);
     msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
-    staticMeshes.push(msh);
-    workStations.push(msh);
+    // staticMeshes.push(msh);
+    // workStations.push(msh);
 
     cvs = [];
     cis = [];
     generateUnitCubeVerticesIndexedWithNormalsTexCoords(cvs, cis);
     boxMesh = createTexturedMesh(cvs, cis);
     boxMesh.textureID = wallTexture;
-    boxMesh.position = new Vector3(-10, 5, 0);
-    boxMesh.scale = new Vector3(1, 10, 30);
-    collisionBoxes.push(boxMesh);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(10, 5, 0);
-    boxMesh.scale = new Vector3(1, 10, 30);
-    collisionBoxes.push(boxMesh);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(0, -0.5, 0);
-    boxMesh.scale = new Vector3(20, 1, 30);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(0, 10.5, 0);
-    boxMesh.scale = new Vector3(20, 1, 30);
-    staticMeshes.push(boxMesh);
+    // boxMesh.position = new Vector3(-10, 5, 0);
+    // boxMesh.scale = new Vector3(1, 10, 30);
+    // collisionBoxes.push(boxMesh);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(10, 5, 0);
+    // boxMesh.scale = new Vector3(1, 10, 30);
+    // collisionBoxes.push(boxMesh);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(0, -0.5, 0);
+    // boxMesh.scale = new Vector3(20, 1, 30);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(0, 10.5, 0);
+    // boxMesh.scale = new Vector3(20, 1, 30);
+    // staticMeshes.push(boxMesh);
 
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(-7.5, 5, -15);
-    boxMesh.scale = new Vector3(5, 10, 1);
-    collisionBoxes.push(boxMesh);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
-    boxMesh.position = new Vector3(5, 5, -15);
-    boxMesh.scale = new Vector3(9, 10, 1);
-    collisionBoxes.push(boxMesh);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(-7.5, 5, 15);
-    boxMesh.scale = new Vector3(5, 10, 1);
-    collisionBoxes.push(boxMesh);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(5, 5, 15);
-    boxMesh.scale = new Vector3(9, 10, 1);
-    collisionBoxes.push(boxMesh);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(-2.25, 9, -15);
-    boxMesh.scale = new Vector3(5.5, 3, 1);
-    staticMeshes.push(boxMesh);
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.position = new Vector3(-2.25, 9, 15);
-    boxMesh.scale = new Vector3(5.5, 3, 1);
-    staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(-7.5, 5, -15);
+    // boxMesh.scale = new Vector3(5, 10, 1);
+    // collisionBoxes.push(boxMesh);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.textureID = wallTexture;
+    // boxMesh.position = new Vector3(5, 5, -15);
+    // boxMesh.scale = new Vector3(9, 10, 1);
+    // collisionBoxes.push(boxMesh);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(-7.5, 5, 15);
+    // boxMesh.scale = new Vector3(5, 10, 1);
+    // collisionBoxes.push(boxMesh);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(5, 5, 15);
+    // boxMesh.scale = new Vector3(9, 10, 1);
+    // collisionBoxes.push(boxMesh);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(-2.25, 9, -15);
+    // boxMesh.scale = new Vector3(5.5, 3, 1);
+    // staticMeshes.push(boxMesh);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(-2.25, 9, 15);
+    // boxMesh.scale = new Vector3(5.5, 3, 1);
+    // staticMeshes.push(boxMesh);
 
     boxMesh = TexturedMesh.copy(boxMesh);
     boxMesh.textureID = doorTexture;
-    boxMesh.position = new Vector3(-2.25, 3.5, -15);
+    boxMesh.position = new Vector3(-2.25, 3.5, 15);
     boxMesh.scale = new Vector3(5.5, 8, 1);
     staticMeshes.push(boxMesh);
     doors.push(boxMesh);
-
-    addRoom(30);
+    // boxMesh = TexturedMesh.copy(boxMesh);
+    // boxMesh.position = new Vector3(-2.25, 3.5, -15);
+    // boxMesh.scale = new Vector3(5.5, 8, 1);
+    // staticMeshes.push(boxMesh);
+    // doors.push(boxMesh);
+    addRoom(0);
+    //addRoom(30);
 
     for(let i = 0; i < staticMeshes.length; i++){
         ghostEnabled.push(true);
@@ -436,15 +441,15 @@ function updateScreen(){
     switch(currentGameMode){
         case GAME_MODE_INSTRUCTIONS :{
             textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
-            textCtx.font = "75px Arial";
-            textCtx.fillText("You must defeat all of the BOO-LEANS to escape!", 100, 100);
-            textCtx.fillText("Controls:", 200, 200);
             textCtx.font = "50px Arial";
-            textCtx.fillText("W - move forward", 200, 250);
-            textCtx.fillText("A - move left", 200, 300);
-            textCtx.fillText("S - move back", 200, 350);
-            textCtx.fillText("D - move right", 200, 400);
-            textCtx.fillText("Move the mouse to look around.", 200, 450);
+            textCtx.fillText("You must defeat all of the BOO-LEANS to escape!", 50, 100);
+            textCtx.fillText("Controls:", 200, 175);
+            textCtx.font = "50px Arial";
+            textCtx.fillText("W - move forward", 200, 225);
+            textCtx.fillText("A - move left", 200, 275);
+            textCtx.fillText("S - move back", 200, 325);
+            textCtx.fillText("D - move right", 200, 375);
+            textCtx.fillText("Move the mouse or use the arrow keys to look around.", 50, 450);
             textCtx.font = "30px Arial";
             textCtx.fillText("When facing a computer, CLICK or press SPACE to reveal a ghost.", 200, 500);
             textCtx.fillText("Click the button or use T and F to anwer the true or false question.", 200, 550);
@@ -460,6 +465,8 @@ function updateScreen(){
             break;
         }
         case GAME_MODE_ROAM :{
+            gameLight.x = gameCamera.position.x;
+            gameLight.z = gameCamera.position.z;
             playerVelocity = new Vector2(0, 0);
             if(gameCamera.moveForward){
                 playerVelocity.add(new Vector2(gameCamera.forward.x, gameCamera.forward.z));
@@ -620,6 +627,17 @@ function updateScreen(){
                 ghostMesh.orientation = new Quaternion();
                 ghostMesh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
                 currentGameMode = GAME_MODE_CLICK_TO_CONT;
+                let d = doors.pop();
+                console.log(d);
+                for(let i = 0; i < staticMeshes.length; i++){
+                    if(staticMeshes[i] === d){
+                        staticMeshes.splice(i, 1);
+                        break;
+                    }
+                }
+                if(ghostsKilled < 10){
+                    addRoom(ghostsKilled * 30);
+                }
             }
 
             gameCamera.lookAt(cameraLockPosition, ghostMesh.position, new Vector3(0, 1, 0));
@@ -638,8 +656,9 @@ function updateScreen(){
             renderCanvasItems();
             textCtx.font = "50px Arial";
             textCtx.fillStyle = "white";
-            textCtx.fillText("Click anywhere or press SPACE to continue", 425, 50);
+            textCtx.fillText("Click anywhere or press SPACE to continue", 100, 50);
             if(spacePressed()){
+                
                 mousePressed(null);
             }
             break;
@@ -863,6 +882,13 @@ function addRoom(offset){
     boxMesh.position = new Vector3(-2.25, 9, 15 - offset);
     boxMesh.scale = new Vector3(5.5, 3, 1);
     staticMeshes.push(boxMesh);
+
+    boxMesh = TexturedMesh.copy(boxMesh);
+    boxMesh.textureID = doorTexture;
+    boxMesh.position = new Vector3(-2.25, 3.5, -15 - offset);
+    boxMesh.scale = new Vector3(5.5, 8, 1);
+    staticMeshes.push(boxMesh);
+    doors.push(boxMesh);
 }
 
 function windowResize(){
