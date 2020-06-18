@@ -56,6 +56,7 @@ var animatedMeshes = [];
 var particleEmitters = [];
 
 var workStations = [];
+var doors = [];
 
 var collisionBoxes = [];
 var boxMesh;
@@ -96,6 +97,9 @@ var spaceTracker = true;
 var ghostHealth;
 var ghostsKilled = 0;
 
+var wallTexture;
+var doorTexture;
+
 var msh;
 
 window.onload = function(){
@@ -128,7 +132,6 @@ window.onload = function(){
     trueButton.style.border = 'solid';
     trueButton.style.borderRadius = "12px";
     trueButton.style.backgroundColor = "#FFBB00";
-    //buttonDiv.appendChild(trueButton);
     falseButton = document.createElement('button');
     falseButton.onclick = falseButtonClicked;
     falseButton.innerHTML = "FALSE";
@@ -136,7 +139,6 @@ window.onload = function(){
     falseButton.style.border = 'solid';
     falseButton.style.borderRadius = "12px";
     falseButton.style.backgroundColor = "#FFBB00";
-    //buttonDiv.appendChild(falseButton);
     buttonDiv.style.display = "none";
 
     startGameButton = document.createElement('button');
@@ -191,13 +193,15 @@ window.onload = function(){
     loadSkyboxFaceImage(skyboxImageData[4], 256, 256, "-y");
     loadSkyboxFaceImage(skyboxImageData[5], 256, 256, "+y");
 
-    let wallColor = [128, 128, 200, 255];
+    let wallColor = [225, 225, 255, 255];
     wallTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
+    wallColor = [100, 0, 0, 255];
+    doorTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
 
     
     msh = createTexturedMesh(workStationMeshData[0], workStationMeshData[1]);
     msh.textureID = generateGLTexture2D(workStationTextureData, 1024, 1024, "linear");
-    msh.position = new Vector3(0, -0.5, -5);
+    msh.position = new Vector3(0, 0, -5);
     msh.scale = new Vector3(1.25, 1.25, 1.25);
     msh.orientation.rotate(new Vector3(0, 1, 0), Math.PI);
     msh.orientation.rotate(new Vector3(1, 0, 0), -Math.PI * 0.5);
@@ -214,24 +218,20 @@ window.onload = function(){
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(10, 5, 0);
     boxMesh.scale = new Vector3(1, 10, 30);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(0, -0.5, 0);
     boxMesh.scale = new Vector3(20, 1, 30);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(0, 10.5, 0);
     boxMesh.scale = new Vector3(20, 1, 30);
     staticMeshes.push(boxMesh);
 
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-7.5, 5, -15);
     boxMesh.scale = new Vector3(5, 10, 1);
     collisionBoxes.push(boxMesh);
@@ -243,27 +243,30 @@ window.onload = function(){
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-7.5, 5, 15);
     boxMesh.scale = new Vector3(5, 10, 1);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(5, 5, 15);
     boxMesh.scale = new Vector3(9, 10, 1);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-2.25, 9, -15);
     boxMesh.scale = new Vector3(5.5, 3, 1);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-2.25, 9, 15);
     boxMesh.scale = new Vector3(5.5, 3, 1);
     staticMeshes.push(boxMesh);
+
+    boxMesh = TexturedMesh.copy(boxMesh);
+    boxMesh.textureID = doorTexture;
+    boxMesh.position = new Vector3(-2.25, 3.5, -15);
+    boxMesh.scale = new Vector3(5.5, 8, 1);
+    staticMeshes.push(boxMesh);
+    doors.push(boxMesh);
 
     addRoom(30);
 
@@ -634,6 +637,7 @@ function updateScreen(){
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
             renderCanvasItems();
             textCtx.font = "50px Arial";
+            textCtx.fillStyle = "white";
             textCtx.fillText("Click anywhere or press SPACE to continue", 425, 50);
             if(spacePressed()){
                 mousePressed(null);
@@ -666,6 +670,36 @@ function handleCollisions(){
         let xmax = collisionBoxes[i].position.x + hsx;
         let zmin = collisionBoxes[i].position.z - hsz;
         let zmax = collisionBoxes[i].position.z + hsz;
+        if(npos.x < xmin || npos.x > xmax
+        || npos.y < zmin || npos.y > zmax){
+            continue;
+        }else{
+            if(playerVelocity.x > 0 && gameCamera.position.x < xmin){
+                playerVelocity.x = 0;
+                npos.x = xmin - 0.01;
+            }
+            else if(playerVelocity.x < 0 && gameCamera.position.x > xmax){
+                playerVelocity.x = 0;
+                npos.x = xmax + 0.01;
+            }
+            if(playerVelocity.y > 0 && gameCamera.position.z < zmin){
+                playerVelocity.y = 0;
+                npos.y = zmin - 0.01;
+            }
+            else if(playerVelocity.y < 0 && gameCamera.position.z > zmax){
+                playerVelocity.y = 0;
+                npos.y = zmax + 0.01;
+            }
+        } 
+    }
+
+    for(let i = 0; i < doors.length; i++){
+        let hsx = doors[i].scale.x / 2 + 1;
+        let hsz = doors[i].scale.z / 2 + 1;
+        let xmin = doors[i].position.x - hsx;
+        let xmax = doors[i].position.x + hsx;
+        let zmin = doors[i].position.z - hsz;
+        let zmax = doors[i].position.z + hsz;
         if(npos.x < xmin || npos.x > xmax
         || npos.y < zmin || npos.y > zmax){
             continue;
@@ -775,64 +809,57 @@ function windowResizeWithButtons(){
 
 function addRoom(offset){
     msh = TexturedMesh.copy(msh);
-    msh.position = new Vector3(0, -0.5, -5 - offset);
+    msh.position = new Vector3(0, 0, -5 - offset);
     msh.scale = new Vector3(1.25, 1.25, 1.25);
     staticMeshes.push(msh);
     workStations.push(msh);
 
     boxMesh = TexturedMesh.copy(boxMesh);
+    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-10, 5, 0 - offset);
     boxMesh.scale = new Vector3(1, 10, 30);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
+    
     boxMesh.position = new Vector3(10, 5, 0 - offset);
     boxMesh.scale = new Vector3(1, 10, 30);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(0, -0.5, 0 - offset);
     boxMesh.scale = new Vector3(20, 1, 30);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(0, 10.5, 0 - offset);
     boxMesh.scale = new Vector3(20, 1, 30);
     staticMeshes.push(boxMesh);
 
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-7.5, 5, -15 - offset);
     boxMesh.scale = new Vector3(5, 10, 1);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(5, 5, -15 - offset);
     boxMesh.scale = new Vector3(9, 10, 1);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-7.5, 5, 15 - offset);
     boxMesh.scale = new Vector3(5, 10, 1);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(5, 5, 15 - offset);
     boxMesh.scale = new Vector3(9, 10, 1);
     collisionBoxes.push(boxMesh);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-2.25, 9, -15 - offset);
     boxMesh.scale = new Vector3(5.5, 3, 1);
     staticMeshes.push(boxMesh);
     boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = wallTexture;
     boxMesh.position = new Vector3(-2.25, 9, 15 - offset);
     boxMesh.scale = new Vector3(5.5, 3, 1);
     staticMeshes.push(boxMesh);
