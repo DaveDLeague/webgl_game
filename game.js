@@ -671,7 +671,7 @@ function updateScreen(){
 }
 
 function renderCanvasItems(){
-    renderQuad(new Vector2(0, canvas.height - (canvas.height / 10)), new Vector2(canvas.width, canvas.height / 4), new Vector4(1, 1, 1, 1), wordSpaceTexture);
+    renderQuad(new Vector2(0, canvas.height - (canvas.height / 10)), new Vector2(canvas.width, canvas.height / 3), new Vector4(1, 1, 1, 1), wordSpaceTexture);
 }
 
 function handleCollisions(){
