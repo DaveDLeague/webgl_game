@@ -8,6 +8,7 @@ const GAME_MODE_GHOST_DYING = 6
 const GAME_MODE_CLICK_TO_CONT = 7
 const GAME_MODE_INSTRUCTIONS = 8
 const GAME_MODE_DEBUG = 9
+const GAME_MODE_END = 10
 
 const LESS_THAN_OP = 0;
 const GREATER_THAN_OP = 1;
@@ -25,6 +26,9 @@ class Question {
     correctAnswer;
     string;
 };
+
+var totalLevels = 10;
+var totalGameTime = 0;
 
 var currentGameMode = GAME_MODE_OPEN;
 
@@ -48,7 +52,8 @@ var startGameButton;
 var howToPlayButton;
 
 var gameCamera;
-var gameLight = new Vector3(0, 50, 0);
+var gameLight = new Vector3(0, 5, 0);
+var playerStartPosition;
 
 var ghostEnabled = [];
 var staticMeshes = [];
@@ -76,6 +81,7 @@ var ghostRelocatePos;
 var ghostMesh;
 
 var gameStarted = false;
+var gameOver = false;
 var transitionToNextGhost = false;
 var ghostSwoop = false;
 var ghostShrink = false;
@@ -101,6 +107,13 @@ var wallTexture;
 var doorTexture;
 
 var msh;
+
+var ghostLaughing = false;
+var laughTimer = 0;
+
+var startTime;
+
+var titleTexture;
 
 window.onload = function(){
     buttonDiv = document.getElementById("buttonDivID");
@@ -179,6 +192,7 @@ window.onload = function(){
     gameCamera.moveSpeed = 10;
     gameCamera.updateView();
     playerPosition = new Vector2(gameCamera.position.x, gameCamera.position.z);
+    playerStartPosition = new Vector3(gameCamera.position.x, gameCamera.position.y, gameCamera.position.z);
 
     initCanvasRenderer(canvas.width, canvas.height);
     initSkyboxRenderer();
@@ -186,17 +200,19 @@ window.onload = function(){
     initAnimatedTexturedMeshRenderer();
     initParticleRenderer();
 
-    loadSkyboxFaceImage(skyboxImageData[0], 256, 256, "-x");
-    loadSkyboxFaceImage(skyboxImageData[1], 256, 256, "+z");
-    loadSkyboxFaceImage(skyboxImageData[2], 256, 256, "+x");
-    loadSkyboxFaceImage(skyboxImageData[3], 256, 256, "-z");
-    loadSkyboxFaceImage(skyboxImageData[4], 256, 256, "-y");
-    loadSkyboxFaceImage(skyboxImageData[5], 256, 256, "+y");
+    loadSkyboxFaceImage(skyboxTextureData[0], 256, 256, "+x");
+    loadSkyboxFaceImage(skyboxTextureData[1], 256, 256, "-x");
+    loadSkyboxFaceImage(skyboxTextureData[2], 256, 256, "+y");
+    loadSkyboxFaceImage(skyboxTextureData[3], 256, 256, "-y");
+    loadSkyboxFaceImage(skyboxTextureData[4], 256, 256, "+z");
+    loadSkyboxFaceImage(skyboxTextureData[5], 256, 256, "-z");
 
     let wallColor = [225, 225, 255, 255];
     wallTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
     wallColor = [255, 100, 100, 255];
     doorTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
+
+    titleTexture = generateGLTexture2D(titleImageData, 957, 751, "linear");
 
     
     msh = createTexturedMesh(workStationMeshData[0], workStationMeshData[1]);
@@ -213,71 +229,6 @@ window.onload = function(){
     generateUnitCubeVerticesIndexedWithNormalsTexCoords(cvs, cis);
     boxMesh = createTexturedMesh(cvs, cis);
     boxMesh.textureID = wallTexture;
-    // boxMesh.position = new Vector3(-10, 5, 0);
-    // boxMesh.scale = new Vector3(1, 10, 30);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(10, 5, 0);
-    // boxMesh.scale = new Vector3(1, 10, 30);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(0, -0.5, 0);
-    // boxMesh.scale = new Vector3(20, 1, 30);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(0, 10.5, 0);
-    // boxMesh.scale = new Vector3(20, 1, 30);
-    // staticMeshes.push(boxMesh);
-
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-7.5, 5, -15);
-    // boxMesh.scale = new Vector3(5, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.textureID = wallTexture;
-    // boxMesh.position = new Vector3(5, 5, -15);
-    // boxMesh.scale = new Vector3(9, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-7.5, 5, 15);
-    // boxMesh.scale = new Vector3(5, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(5, 5, 15);
-    // boxMesh.scale = new Vector3(9, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-2.25, 9, -15);
-    // boxMesh.scale = new Vector3(5.5, 3, 1);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-2.25, 9, 15);
-    // boxMesh.scale = new Vector3(5.5, 3, 1);
-    // staticMeshes.push(boxMesh);
-
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = doorTexture;
-    boxMesh.position = new Vector3(-2.25, 3.5, 15);
-    boxMesh.scale = new Vector3(5.5, 8, 1);
-    staticMeshes.push(boxMesh);
-    doors.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-2.25, 3.5, -15);
-    // boxMesh.scale = new Vector3(5.5, 8, 1);
-    // staticMeshes.push(boxMesh);
-    // doors.push(boxMesh);
-    addRoom(0);
-    //addRoom(30);
-
-    for(let i = 0; i < staticMeshes.length; i++){
-        ghostEnabled.push(true);
-    }
 
     ghostStartPos = new Vector3(0, 5, 0);
     ghostMesh = createAnimatedTexturedMesh(boo_leanMeshData[0], boo_leanMeshData[1]);
@@ -440,6 +391,7 @@ function updateScreen(){
 
     switch(currentGameMode){
         case GAME_MODE_INSTRUCTIONS :{
+            renderQuad(new Vector2(0, 0), new Vector2(canvas.width, canvas.height), new Vector4(0.3, 0.3, 0.3, 0.3), titleTexture);
             textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
             textCtx.font = "50px Arial";
             textCtx.fillText("You must defeat all of the BOO-LEANS to escape!", 50, 100);
@@ -461,7 +413,7 @@ function updateScreen(){
             break;
         }
         case GAME_MODE_OPEN :{
-            
+            renderQuad(new Vector2(0, 0), new Vector2(canvas.width, canvas.height), new Vector4(1, 1, 1, 1), titleTexture);
             break;
         }
         case GAME_MODE_ROAM :{
@@ -481,10 +433,14 @@ function updateScreen(){
                 playerVelocity.add(new Vector2(gameCamera.right.x, gameCamera.right.z));
             }
             if(gameCamera.pitchUp){
-                gameCamera.orientation.rotate(gameCamera.right, -deltaTime * gameCamera.rotateSpeed);
+                if(gameCamera.forward.y < 0.9){
+                    gameCamera.orientation.rotate(gameCamera.right, -deltaTime * gameCamera.rotateSpeed);
+                }
             }
             if(gameCamera.pitchDown){
-                gameCamera.orientation.rotate(gameCamera.right, deltaTime * gameCamera.rotateSpeed);
+                if(gameCamera.forward.y > -0.9){
+                    gameCamera.orientation.rotate(gameCamera.right, deltaTime * gameCamera.rotateSpeed);
+                }
             }
             if(gameCamera.yawLeft){
                 gameCamera.orientation.rotate(new Vector3(0, 1, 0), -deltaTime * gameCamera.rotateSpeed);
@@ -501,10 +457,44 @@ function updateScreen(){
                 checkForGhostArrival();
             } 
             gameCamera.updateView(deltaTime);
+            
+            if(gameCamera.position.z < totalLevels * -30 + 15 && !gameOver){
+                currentGameMode = GAME_MODE_END;
+            }
+
             updateParticles([ghostParticleEmitter], deltaTime);
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             playerPosition = new Vector2(gameCamera.position.x, gameCamera.position.z);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
+            totalGameTime += deltaTime;
+            break;
+        }
+        case GAME_MODE_END :{
+            renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
+            renderQuad(new Vector2(0, 0), new Vector2(canvas.width, canvas.height), new Vector4(1, 1, 1, 0.25), wordSpaceTexture);
+            textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+            textCtx.font = "50px Arial";
+            textCtx.fillText("You have succesfully escaped the", 50, 100);
+            textCtx.fillText("Boo-leans' haunted labrynth!", 60, 150);
+            let div = totalGameTime / 60.0;
+            let minutes = Math.floor(div);
+            let seconds = (div - minutes) * 60;
+            textCtx.fillText("Your time was " + minutes + " minute(s) and " + seconds.toFixed(2) + " seconds.", 60, 200);
+            if(!gameOver){
+                canvas.style.cursor = "pointer";
+                textCanvas.style.cursor = "pointer";
+                buttonDiv.removeChild(trueButton);
+                buttonDiv.removeChild(falseButton);
+                buttonDiv.appendChild(startGameButton);
+                buttonDiv.appendChild(howToPlayButton);
+                startGameButton.disabled = false;
+                howToPlayButton.disabled = false;
+                document.exitPointerLock();
+                windowResizeWithButtons();
+                gameOver = true;
+            }else{
+
+            }
             break;
         }
         case GAME_MODE_DEBUG :{
@@ -567,6 +557,7 @@ function updateScreen(){
                 textCanvas.style.cursor = "pointer";
                 document.exitPointerLock();
             }
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_QUESTION_ANSWER :{  
@@ -589,19 +580,31 @@ function updateScreen(){
                     textCtx.fillText(qlines[i], tx, textSize * (i + 1));
                 }
             }
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_QUESTION_WRONG :{
-            gameCamera.lookAt(cameraLockPosition, ghostMesh.position, new Vector3(0, 1, 0));
+            //gameCamera.lookAt(cameraLockPosition, ghostMesh.position, new Vector3(0, 1, 0));
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
             updateAnimations(animatedMeshes, deltaTime);
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
-            renderCanvasItems();
-            setGhostHealth();
-            currentGameMode = GAME_MODE_QUESTION_ANSWER;
+            if(ghostLaughing){
+                console.log(laughTimer);
+                ghostMesh.position.y -= Math.sin(laughTimer * 2 * Math.PI * 2) * 0.1;
+                laughTimer += deltaTime;
+                if(laughTimer >= 1.5){
+                    laughTimer = 0;
+                    ghostMesh.position.y = 7;
+                    ghostLaughing = false;
+                }
+            }else{
+                setGhostHealth();
+                currentGameMode = GAME_MODE_QUESTION_ANSWER;
+            }
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_QUESTION_RIGHT :{
@@ -612,11 +615,11 @@ function updateScreen(){
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
-            renderCanvasItems();
 
             trueButton.disabled = false;
             falseButton.disabled = false;
             currentGameMode = GAME_MODE_QUESTION_ANSWER;
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_GHOST_DYING :{
@@ -628,14 +631,13 @@ function updateScreen(){
                 ghostMesh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
                 currentGameMode = GAME_MODE_CLICK_TO_CONT;
                 let d = doors.pop();
-                console.log(d);
                 for(let i = 0; i < staticMeshes.length; i++){
                     if(staticMeshes[i] === d){
                         staticMeshes.splice(i, 1);
                         break;
                     }
                 }
-                if(ghostsKilled < 10){
+                if(ghostsKilled < totalLevels){
                     addRoom(ghostsKilled * 30);
                 }
             }
@@ -647,13 +649,13 @@ function updateScreen(){
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_CLICK_TO_CONT :{
             gameCamera.lookAt(cameraLockPosition, Vector3.add(cameraLockPosition, gameCamera.forward), new Vector3(0, 1, 0));
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
-            renderCanvasItems();
             textCtx.font = "50px Arial";
             textCtx.fillStyle = "white";
             textCtx.fillText("Click anywhere or press SPACE to continue", 100, 50);
@@ -661,6 +663,7 @@ function updateScreen(){
                 
                 mousePressed(null);
             }
+            totalGameTime += deltaTime;
             break;
         }
     }
@@ -671,7 +674,7 @@ function updateScreen(){
 }
 
 function renderCanvasItems(){
-    renderQuad(new Vector2(0, canvas.height - (canvas.height / 10)), new Vector2(canvas.width, canvas.height / 3), new Vector4(1, 1, 1, 1), wordSpaceTexture);
+    renderQuad(new Vector2(0, canvas.height - canvas.height / 4), new Vector2(canvas.width, canvas.height / 4), new Vector4(1, 1, 1, 0.25), wordSpaceTexture);
 }
 
 function handleCollisions(){
@@ -1178,6 +1181,7 @@ function checkAnswer(actual, correct){
     }else{
         currentLevel = 1;
         currentGameMode = GAME_MODE_QUESTION_WRONG;
+        ghostLaughing = true;
     }
     currentQuestion = generateQuestion(currentLevel);
 }
@@ -1191,7 +1195,30 @@ function falseButtonClicked(){
 }
 
 function startGameButtonClicked(){
+    staticMeshes = [];
+    doors = [];
+    collisionBoxes = [];
+    workStations = [];
+    boxMesh = TexturedMesh.copy(boxMesh);
+    boxMesh.textureID = doorTexture;
+    boxMesh.position = new Vector3(-2.25, 3.5, 15);
+    boxMesh.scale = new Vector3(5.5, 8, 1);
+    staticMeshes.push(boxMesh);
+    doors.push(boxMesh);
+    addRoom(0);
+    gameOver = false;
+    
+
+    ghostEnabled = [];
+    for(let i = 0; i < totalLevels; i++){
+        ghostEnabled.push(true);
+    }
+    totalGameTime = 0;
+    ghostsKilled = 0;
+    currentLevel = 1;
+    setGhostHealth();
     currentGameMode = GAME_MODE_ROAM;
+    gameCamera.position = new Vector3(playerStartPosition.x, playerStartPosition.y, playerStartPosition.z);
     gameStarted = true;
     buttonDiv.removeChild(startGameButton);
     buttonDiv.removeChild(howToPlayButton);
@@ -1222,6 +1249,9 @@ function spacePressed(){
     return false;
 }
 
+
+var bk = false;
+var gk = false;
 function keyUp(event){ 
     switch(event.keyCode){
         case KEY_W:{
@@ -1232,12 +1262,20 @@ function keyUp(event){
             gameCamera.moveLeft = false;
             break;
         }
+        case KEY_B:{
+            bk = false;
+            break;
+        }
         case KEY_S:{
             gameCamera.moveBack = false;
             break;
         }
         case KEY_D:{
             gameCamera.moveRight = false;
+            break;
+        }
+        case KEY_G:{
+            gk = false;
             break;
         }
         case KEY_R:{
@@ -1279,6 +1317,7 @@ function keyUp(event){
     }
 }
 
+
 function keyDown(event){
     switch(event.keyCode){
         case KEY_W:{
@@ -1290,10 +1329,20 @@ function keyDown(event){
             break;
         }
         case KEY_B:{
-            if(currentGameMode == GAME_MODE_ROAM){
-                currentGameMode = GAME_MODE_DEBUG;
-            }else if(currentGameMode == GAME_MODE_DEBUG){
-                currentGameMode = GAME_MODE_ROAM;
+            bk = true;
+            break;
+        }
+        case KEY_G:{
+            gk = true;
+            break;
+        }
+        case KEY_U:{
+            if(bk && gk){
+                if(currentGameMode == GAME_MODE_ROAM){
+                    currentGameMode = GAME_MODE_DEBUG;
+                }else if(currentGameMode == GAME_MODE_DEBUG){
+                    currentGameMode = GAME_MODE_ROAM;
+                }
             }
             break;
         }
@@ -1346,7 +1395,7 @@ function keyDown(event){
             break;
         }
         case KEY_SPACE:{
-            if(currentGameMode == GAME_MODE_OPEN || currentGameMode == GAME_MODE_INSTRUCTIONS){
+            if(currentGameMode == GAME_MODE_OPEN || currentGameMode == GAME_MODE_INSTRUCTIONS || currentGameMode == GAME_MODE_END){
                 startGameButtonClicked();
             }
             spaceDown = true;
