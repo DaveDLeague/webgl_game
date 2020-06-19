@@ -27,7 +27,7 @@ class Question {
     string;
 };
 
-var totalLevels = 1;
+var totalLevels = 10;
 var totalGameTime = 0;
 
 var currentGameMode = GAME_MODE_OPEN;
@@ -52,7 +52,7 @@ var startGameButton;
 var howToPlayButton;
 
 var gameCamera;
-var gameLight = new Vector3(0, 50, 0);
+var gameLight = new Vector3(0, 5, 0);
 var playerStartPosition;
 
 var ghostEnabled = [];
@@ -112,6 +112,8 @@ var ghostLaughing = false;
 var laughTimer = 0;
 
 var startTime;
+
+var titleTexture;
 
 window.onload = function(){
     buttonDiv = document.getElementById("buttonDivID");
@@ -209,6 +211,8 @@ window.onload = function(){
     wallTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
     wallColor = [255, 100, 100, 255];
     doorTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
+
+    titleTexture = generateGLTexture2D(titleImageData, 957, 751, "linear");
 
     
     msh = createTexturedMesh(workStationMeshData[0], workStationMeshData[1]);
@@ -387,6 +391,7 @@ function updateScreen(){
 
     switch(currentGameMode){
         case GAME_MODE_INSTRUCTIONS :{
+            renderQuad(new Vector2(0, 0), new Vector2(canvas.width, canvas.height), new Vector4(0.3, 0.3, 0.3, 0.3), titleTexture);
             textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
             textCtx.font = "50px Arial";
             textCtx.fillText("You must defeat all of the BOO-LEANS to escape!", 50, 100);
@@ -408,7 +413,7 @@ function updateScreen(){
             break;
         }
         case GAME_MODE_OPEN :{
-            
+            renderQuad(new Vector2(0, 0), new Vector2(canvas.width, canvas.height), new Vector4(1, 1, 1, 1), titleTexture);
             break;
         }
         case GAME_MODE_ROAM :{
@@ -474,7 +479,7 @@ function updateScreen(){
             let div = totalGameTime / 60.0;
             let minutes = Math.floor(div);
             let seconds = (div - minutes) * 60;
-            textCtx.fillText("Your time was " + minutes + " minutes and " + seconds.toFixed(2) + " seconds.", 60, 200);
+            textCtx.fillText("Your time was " + minutes + " minute(s) and " + seconds.toFixed(2) + " seconds.", 60, 200);
             if(!gameOver){
                 canvas.style.cursor = "pointer";
                 textCanvas.style.cursor = "pointer";
@@ -669,7 +674,7 @@ function updateScreen(){
 }
 
 function renderCanvasItems(){
-    renderQuad(new Vector2(0, canvas.height - canvas.height / 4), new Vector2(canvas.width, canvas.height / 4), new Vector4(1, 1, 1, 1), wordSpaceTexture);
+    renderQuad(new Vector2(0, canvas.height - canvas.height / 4), new Vector2(canvas.width, canvas.height / 4), new Vector4(1, 1, 1, 0.25), wordSpaceTexture);
 }
 
 function handleCollisions(){
@@ -1244,6 +1249,9 @@ function spacePressed(){
     return false;
 }
 
+
+var bk = false;
+var gk = false;
 function keyUp(event){ 
     switch(event.keyCode){
         case KEY_W:{
@@ -1254,12 +1262,20 @@ function keyUp(event){
             gameCamera.moveLeft = false;
             break;
         }
+        case KEY_B:{
+            bk = false;
+            break;
+        }
         case KEY_S:{
             gameCamera.moveBack = false;
             break;
         }
         case KEY_D:{
             gameCamera.moveRight = false;
+            break;
+        }
+        case KEY_G:{
+            gk = false;
             break;
         }
         case KEY_R:{
@@ -1301,6 +1317,7 @@ function keyUp(event){
     }
 }
 
+
 function keyDown(event){
     switch(event.keyCode){
         case KEY_W:{
@@ -1312,10 +1329,20 @@ function keyDown(event){
             break;
         }
         case KEY_B:{
-            if(currentGameMode == GAME_MODE_ROAM){
-                currentGameMode = GAME_MODE_DEBUG;
-            }else if(currentGameMode == GAME_MODE_DEBUG){
-                currentGameMode = GAME_MODE_ROAM;
+            bk = true;
+            break;
+        }
+        case KEY_G:{
+            gk = true;
+            break;
+        }
+        case KEY_U:{
+            if(bk && gk){
+                if(currentGameMode == GAME_MODE_ROAM){
+                    currentGameMode = GAME_MODE_DEBUG;
+                }else if(currentGameMode == GAME_MODE_DEBUG){
+                    currentGameMode = GAME_MODE_ROAM;
+                }
             }
             break;
         }
