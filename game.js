@@ -8,6 +8,7 @@ const GAME_MODE_GHOST_DYING = 6
 const GAME_MODE_CLICK_TO_CONT = 7
 const GAME_MODE_INSTRUCTIONS = 8
 const GAME_MODE_DEBUG = 9
+const GAME_MODE_END = 10
 
 const LESS_THAN_OP = 0;
 const GREATER_THAN_OP = 1;
@@ -76,6 +77,7 @@ var ghostRelocatePos;
 var ghostMesh;
 
 var gameStarted = false;
+var gameOver = false;
 var transitionToNextGhost = false;
 var ghostSwoop = false;
 var ghostShrink = false;
@@ -186,12 +188,12 @@ window.onload = function(){
     initAnimatedTexturedMeshRenderer();
     initParticleRenderer();
 
-    loadSkyboxFaceImage(skyboxImageData[0], 256, 256, "-x");
-    loadSkyboxFaceImage(skyboxImageData[1], 256, 256, "+z");
-    loadSkyboxFaceImage(skyboxImageData[2], 256, 256, "+x");
-    loadSkyboxFaceImage(skyboxImageData[3], 256, 256, "-z");
-    loadSkyboxFaceImage(skyboxImageData[4], 256, 256, "-y");
-    loadSkyboxFaceImage(skyboxImageData[5], 256, 256, "+y");
+    loadSkyboxFaceImage(skyboxTextureData[0], 256, 256, "+x");
+    loadSkyboxFaceImage(skyboxTextureData[1], 256, 256, "-x");
+    loadSkyboxFaceImage(skyboxTextureData[2], 256, 256, "+y");
+    loadSkyboxFaceImage(skyboxTextureData[3], 256, 256, "-y");
+    loadSkyboxFaceImage(skyboxTextureData[4], 256, 256, "+z");
+    loadSkyboxFaceImage(skyboxTextureData[5], 256, 256, "-z");
 
     let wallColor = [225, 225, 255, 255];
     wallTexture = generateGLTexture2D(wallColor, 1, 1, "linear");
@@ -213,67 +215,13 @@ window.onload = function(){
     generateUnitCubeVerticesIndexedWithNormalsTexCoords(cvs, cis);
     boxMesh = createTexturedMesh(cvs, cis);
     boxMesh.textureID = wallTexture;
-    // boxMesh.position = new Vector3(-10, 5, 0);
-    // boxMesh.scale = new Vector3(1, 10, 30);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(10, 5, 0);
-    // boxMesh.scale = new Vector3(1, 10, 30);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(0, -0.5, 0);
-    // boxMesh.scale = new Vector3(20, 1, 30);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(0, 10.5, 0);
-    // boxMesh.scale = new Vector3(20, 1, 30);
-    // staticMeshes.push(boxMesh);
-
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-7.5, 5, -15);
-    // boxMesh.scale = new Vector3(5, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.textureID = wallTexture;
-    // boxMesh.position = new Vector3(5, 5, -15);
-    // boxMesh.scale = new Vector3(9, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-7.5, 5, 15);
-    // boxMesh.scale = new Vector3(5, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(5, 5, 15);
-    // boxMesh.scale = new Vector3(9, 10, 1);
-    // collisionBoxes.push(boxMesh);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-2.25, 9, -15);
-    // boxMesh.scale = new Vector3(5.5, 3, 1);
-    // staticMeshes.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-2.25, 9, 15);
-    // boxMesh.scale = new Vector3(5.5, 3, 1);
-    // staticMeshes.push(boxMesh);
-
     boxMesh = TexturedMesh.copy(boxMesh);
     boxMesh.textureID = doorTexture;
     boxMesh.position = new Vector3(-2.25, 3.5, 15);
     boxMesh.scale = new Vector3(5.5, 8, 1);
     staticMeshes.push(boxMesh);
     doors.push(boxMesh);
-    // boxMesh = TexturedMesh.copy(boxMesh);
-    // boxMesh.position = new Vector3(-2.25, 3.5, -15);
-    // boxMesh.scale = new Vector3(5.5, 8, 1);
-    // staticMeshes.push(boxMesh);
-    // doors.push(boxMesh);
     addRoom(0);
-    //addRoom(30);
 
     for(let i = 0; i < staticMeshes.length; i++){
         ghostEnabled.push(true);
@@ -481,10 +429,14 @@ function updateScreen(){
                 playerVelocity.add(new Vector2(gameCamera.right.x, gameCamera.right.z));
             }
             if(gameCamera.pitchUp){
-                gameCamera.orientation.rotate(gameCamera.right, -deltaTime * gameCamera.rotateSpeed);
+                if(gameCamera.forward.y < 0.9){
+                    gameCamera.orientation.rotate(gameCamera.right, -deltaTime * gameCamera.rotateSpeed);
+                }
             }
             if(gameCamera.pitchDown){
-                gameCamera.orientation.rotate(gameCamera.right, deltaTime * gameCamera.rotateSpeed);
+                if(gameCamera.forward.y > -0.9){
+                    gameCamera.orientation.rotate(gameCamera.right, deltaTime * gameCamera.rotateSpeed);
+                }
             }
             if(gameCamera.yawLeft){
                 gameCamera.orientation.rotate(new Vector3(0, 1, 0), -deltaTime * gameCamera.rotateSpeed);
@@ -501,10 +453,21 @@ function updateScreen(){
                 checkForGhostArrival();
             } 
             gameCamera.updateView(deltaTime);
+            
+            if(gameCamera.position.z < -60 && !gameOver){
+                gameOver = true;
+                currentGameMode = GAME_MODE_END;
+            }
+
             updateParticles([ghostParticleEmitter], deltaTime);
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             playerPosition = new Vector2(gameCamera.position.x, gameCamera.position.z);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
+            break;
+        }
+        case GAME_MODE_END :{
+            alert("YOU WIN!");
+            currentGameMode = GAME_MODE_ROAM;
             break;
         }
         case GAME_MODE_DEBUG :{
@@ -599,7 +562,7 @@ function updateScreen(){
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
-            renderCanvasItems();
+
             setGhostHealth();
             currentGameMode = GAME_MODE_QUESTION_ANSWER;
             break;
@@ -612,7 +575,6 @@ function updateScreen(){
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
-            renderCanvasItems();
 
             trueButton.disabled = false;
             falseButton.disabled = false;
@@ -635,7 +597,7 @@ function updateScreen(){
                         break;
                     }
                 }
-                if(ghostsKilled < 10){
+                if(ghostsKilled < 2){
                     addRoom(ghostsKilled * 30);
                 }
             }
@@ -653,7 +615,6 @@ function updateScreen(){
             gameCamera.lookAt(cameraLockPosition, Vector3.add(cameraLockPosition, gameCamera.forward), new Vector3(0, 1, 0));
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
-            renderCanvasItems();
             textCtx.font = "50px Arial";
             textCtx.fillStyle = "white";
             textCtx.fillText("Click anywhere or press SPACE to continue", 100, 50);
@@ -671,7 +632,7 @@ function updateScreen(){
 }
 
 function renderCanvasItems(){
-    renderQuad(new Vector2(0, canvas.height - (canvas.height / 10)), new Vector2(canvas.width, canvas.height / 3), new Vector4(1, 1, 1, 1), wordSpaceTexture);
+    renderQuad(new Vector2(0, canvas.height - canvas.height / 4), new Vector2(canvas.width, canvas.height / 4), new Vector4(1, 1, 1, 1), wordSpaceTexture);
 }
 
 function handleCollisions(){
