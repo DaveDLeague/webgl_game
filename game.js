@@ -27,6 +27,9 @@ class Question {
     string;
 };
 
+var totalLevels = 1;
+var totalGameTime = 0;
+
 var currentGameMode = GAME_MODE_OPEN;
 
 var currentQuestion;
@@ -50,6 +53,7 @@ var howToPlayButton;
 
 var gameCamera;
 var gameLight = new Vector3(0, 50, 0);
+var playerStartPosition;
 
 var ghostEnabled = [];
 var staticMeshes = [];
@@ -103,6 +107,11 @@ var wallTexture;
 var doorTexture;
 
 var msh;
+
+var ghostLaughing = false;
+var laughTimer = 0;
+
+var startTime;
 
 window.onload = function(){
     buttonDiv = document.getElementById("buttonDivID");
@@ -181,6 +190,7 @@ window.onload = function(){
     gameCamera.moveSpeed = 10;
     gameCamera.updateView();
     playerPosition = new Vector2(gameCamera.position.x, gameCamera.position.z);
+    playerStartPosition = new Vector3(gameCamera.position.x, gameCamera.position.y, gameCamera.position.z);
 
     initCanvasRenderer(canvas.width, canvas.height);
     initSkyboxRenderer();
@@ -215,17 +225,6 @@ window.onload = function(){
     generateUnitCubeVerticesIndexedWithNormalsTexCoords(cvs, cis);
     boxMesh = createTexturedMesh(cvs, cis);
     boxMesh.textureID = wallTexture;
-    boxMesh = TexturedMesh.copy(boxMesh);
-    boxMesh.textureID = doorTexture;
-    boxMesh.position = new Vector3(-2.25, 3.5, 15);
-    boxMesh.scale = new Vector3(5.5, 8, 1);
-    staticMeshes.push(boxMesh);
-    doors.push(boxMesh);
-    addRoom(0);
-
-    for(let i = 0; i < staticMeshes.length; i++){
-        ghostEnabled.push(true);
-    }
 
     ghostStartPos = new Vector3(0, 5, 0);
     ghostMesh = createAnimatedTexturedMesh(boo_leanMeshData[0], boo_leanMeshData[1]);
@@ -454,8 +453,7 @@ function updateScreen(){
             } 
             gameCamera.updateView(deltaTime);
             
-            if(gameCamera.position.z < -60 && !gameOver){
-                gameOver = true;
+            if(gameCamera.position.z < totalLevels * -30 + 15 && !gameOver){
                 currentGameMode = GAME_MODE_END;
             }
 
@@ -463,11 +461,35 @@ function updateScreen(){
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             playerPosition = new Vector2(gameCamera.position.x, gameCamera.position.z);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_END :{
-            alert("YOU WIN!");
-            currentGameMode = GAME_MODE_ROAM;
+            renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
+            renderQuad(new Vector2(0, 0), new Vector2(canvas.width, canvas.height), new Vector4(1, 1, 1, 0.25), wordSpaceTexture);
+            textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+            textCtx.font = "50px Arial";
+            textCtx.fillText("You have succesfully escaped the", 50, 100);
+            textCtx.fillText("Boo-leans' haunted labrynth!", 60, 150);
+            let div = totalGameTime / 60.0;
+            let minutes = Math.floor(div);
+            let seconds = (div - minutes) * 60;
+            textCtx.fillText("Your time was " + minutes + " minutes and " + seconds.toFixed(2) + " seconds.", 60, 200);
+            if(!gameOver){
+                canvas.style.cursor = "pointer";
+                textCanvas.style.cursor = "pointer";
+                buttonDiv.removeChild(trueButton);
+                buttonDiv.removeChild(falseButton);
+                buttonDiv.appendChild(startGameButton);
+                buttonDiv.appendChild(howToPlayButton);
+                startGameButton.disabled = false;
+                howToPlayButton.disabled = false;
+                document.exitPointerLock();
+                windowResizeWithButtons();
+                gameOver = true;
+            }else{
+
+            }
             break;
         }
         case GAME_MODE_DEBUG :{
@@ -530,6 +552,7 @@ function updateScreen(){
                 textCanvas.style.cursor = "pointer";
                 document.exitPointerLock();
             }
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_QUESTION_ANSWER :{  
@@ -552,19 +575,31 @@ function updateScreen(){
                     textCtx.fillText(qlines[i], tx, textSize * (i + 1));
                 }
             }
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_QUESTION_WRONG :{
-            gameCamera.lookAt(cameraLockPosition, ghostMesh.position, new Vector3(0, 1, 0));
+            //gameCamera.lookAt(cameraLockPosition, ghostMesh.position, new Vector3(0, 1, 0));
             renderSkybox(gameCamera.projectionMatrix, gameCamera.orientation);
             renderTexturedMeshes(staticMeshes, gameCamera, gameLight);
             updateAnimations(animatedMeshes, deltaTime);
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
-
-            setGhostHealth();
-            currentGameMode = GAME_MODE_QUESTION_ANSWER;
+            if(ghostLaughing){
+                console.log(laughTimer);
+                ghostMesh.position.y -= Math.sin(laughTimer * 2 * Math.PI * 2) * 0.1;
+                laughTimer += deltaTime;
+                if(laughTimer >= 1.5){
+                    laughTimer = 0;
+                    ghostMesh.position.y = 7;
+                    ghostLaughing = false;
+                }
+            }else{
+                setGhostHealth();
+                currentGameMode = GAME_MODE_QUESTION_ANSWER;
+            }
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_QUESTION_RIGHT :{
@@ -579,6 +614,7 @@ function updateScreen(){
             trueButton.disabled = false;
             falseButton.disabled = false;
             currentGameMode = GAME_MODE_QUESTION_ANSWER;
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_GHOST_DYING :{
@@ -590,14 +626,13 @@ function updateScreen(){
                 ghostMesh.orientation.rotate(new Vector3(1, 0, 0), Math.PI);
                 currentGameMode = GAME_MODE_CLICK_TO_CONT;
                 let d = doors.pop();
-                console.log(d);
                 for(let i = 0; i < staticMeshes.length; i++){
                     if(staticMeshes[i] === d){
                         staticMeshes.splice(i, 1);
                         break;
                     }
                 }
-                if(ghostsKilled < 2){
+                if(ghostsKilled < totalLevels){
                     addRoom(ghostsKilled * 30);
                 }
             }
@@ -609,6 +644,7 @@ function updateScreen(){
             renderAnimatedTexturedMeshes([ghostMesh], gameCamera, gameLight, deltaTime);
             updateParticles([ghostParticleEmitter, hitParticleEmitter], deltaTime);
             renderParticles([ghostParticleEmitter, hitParticleEmitter], gameCamera, deltaTime);
+            totalGameTime += deltaTime;
             break;
         }
         case GAME_MODE_CLICK_TO_CONT :{
@@ -622,6 +658,7 @@ function updateScreen(){
                 
                 mousePressed(null);
             }
+            totalGameTime += deltaTime;
             break;
         }
     }
@@ -1139,6 +1176,7 @@ function checkAnswer(actual, correct){
     }else{
         currentLevel = 1;
         currentGameMode = GAME_MODE_QUESTION_WRONG;
+        ghostLaughing = true;
     }
     currentQuestion = generateQuestion(currentLevel);
 }
@@ -1152,7 +1190,30 @@ function falseButtonClicked(){
 }
 
 function startGameButtonClicked(){
+    staticMeshes = [];
+    doors = [];
+    collisionBoxes = [];
+    workStations = [];
+    boxMesh = TexturedMesh.copy(boxMesh);
+    boxMesh.textureID = doorTexture;
+    boxMesh.position = new Vector3(-2.25, 3.5, 15);
+    boxMesh.scale = new Vector3(5.5, 8, 1);
+    staticMeshes.push(boxMesh);
+    doors.push(boxMesh);
+    addRoom(0);
+    gameOver = false;
+    
+
+    ghostEnabled = [];
+    for(let i = 0; i < totalLevels; i++){
+        ghostEnabled.push(true);
+    }
+    totalGameTime = 0;
+    ghostsKilled = 0;
+    currentLevel = 1;
+    setGhostHealth();
     currentGameMode = GAME_MODE_ROAM;
+    gameCamera.position = new Vector3(playerStartPosition.x, playerStartPosition.y, playerStartPosition.z);
     gameStarted = true;
     buttonDiv.removeChild(startGameButton);
     buttonDiv.removeChild(howToPlayButton);
@@ -1307,7 +1368,7 @@ function keyDown(event){
             break;
         }
         case KEY_SPACE:{
-            if(currentGameMode == GAME_MODE_OPEN || currentGameMode == GAME_MODE_INSTRUCTIONS){
+            if(currentGameMode == GAME_MODE_OPEN || currentGameMode == GAME_MODE_INSTRUCTIONS || currentGameMode == GAME_MODE_END){
                 startGameButtonClicked();
             }
             spaceDown = true;
